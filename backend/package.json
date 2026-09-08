@@ -1,0 +1,26 @@
+{
+  "name": "sysmant-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sistema Local de Gestion y Control de Mantenimiento de Equipos con Supervision Remota - Fase 1",
+  "type": "commonjs",
+  "scripts": {
+    "db:check": "node scripts/check-db.js",
+    "db:watch": "nodemon --watch src/config --watch .env --ext js,env scripts/check-db.js"
+  },
+  "engines": {
+    "node": ">=24.0.0 <25.0.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.24.4",
+    "node-cron": "^4.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

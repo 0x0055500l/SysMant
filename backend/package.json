@@ -1,12 +1,20 @@
 {
   "name": "sysmant-backend",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Sistema Local de Gestion y Control de Mantenimiento de Equipos con Supervision Remota - Fase 1",
+  "description": "SysMant - API REST y logica de negocio para mantenimiento de equipos",
   "type": "commonjs",
   "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon --watch src --watch .env --ext js,env src/server.js",
+    "env:setup": "node scripts/setup-env.js",
     "db:check": "node scripts/check-db.js",
-    "db:watch": "nodemon --watch src/config --watch .env --ext js,env scripts/check-db.js"
+    "db:watch": "nodemon --watch src/config --watch .env --ext js,env scripts/check-db.js",
+    "test": "node --test",
+    "test:integration": "node scripts/run-integration.js",
+    "alerts:generate": "node scripts/generate-alerts.js",
+    "db:migrate:phase3": "node scripts/migrate-phase3.js",
+    "azure:mock": "node scripts/mock-azure.js"
   },
   "engines": {
     "node": ">=24.0.0 <25.0.0"
@@ -16,9 +24,12 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.24.4",
-    "node-cron": "^4.6.0"
+    "node-cron": "^4.6.0",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

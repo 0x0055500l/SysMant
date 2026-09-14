@@ -1,0 +1,11 @@
+'use strict';
+const { Router } = require('express');
+const { verificarToken, verificarRol } = require('../middlewares/auth.middleware');
+const { validate } = require('../middlewares/validate.middleware');
+const { emptyBodySchema } = require('../validators/alertas.schemas');
+const controller = require('../controllers/sincronizacion.controller');
+const router = Router();
+router.use(verificarToken, verificarRol(['admin', 'supervisor']));
+router.get('/estado', controller.estado);
+router.post('/forzar', validate(emptyBodySchema), controller.forzar);
+module.exports = router;

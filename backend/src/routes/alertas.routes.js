@@ -1,0 +1,13 @@
+'use strict';
+const { Router } = require('express');
+const { verificarToken } = require('../middlewares/auth.middleware');
+const { validate } = require('../middlewares/validate.middleware');
+const controller = require('../controllers/alertas.controller');
+const { listarAlertasSchema, alertaIdSchema, emptyBodySchema } = require('../validators/alertas.schemas');
+const router = Router();
+router.use(verificarToken);
+router.get('/resumen', controller.resumen);
+router.get('/', validate(listarAlertasSchema, 'query'), controller.listar);
+router.put('/marcar-todas-leidas', validate(emptyBodySchema), controller.marcarTodas);
+router.put('/:id/leer', validate(alertaIdSchema, 'params'), validate(emptyBodySchema), controller.leer);
+module.exports = router;

@@ -1,0 +1,90 @@
+<main class="login-page">
+  <section class="identity-panel" aria-label="SysMant, gestión de mantenimiento">
+    <app-brand />
+    <div class="identity-copy">
+      <span class="eyebrow">ESTACIONES DE SERVICIO</span>
+      <h1>El cuidado de tus equipos empieza aquí<span>.</span></h1>
+      <p>Un espacio para organizar el mantenimiento y acompañar el trabajo de tu estación.</p>
+      <div class="identity-rule"></div>
+      <div class="identity-signature"><i class="bi bi-tools" aria-hidden="true"></i><span>Gestión local.<br>Supervisión conectada.</span></div>
+    </div>
+    <div class="identity-footer"><span>Puma Energy</span><span>SysMant / Mantenimiento</span></div>
+  </section>
+
+  <section class="access-panel" aria-labelledby="login-title">
+    <div class="mobile-brand"><app-brand /></div>
+    <div class="login-form-container">
+      <span class="access-icon"><i class="bi bi-person-lock" aria-hidden="true"></i></span>
+      <p class="eyebrow text-secondary mb-2">ACCESO AL SISTEMA</p>
+      <h2 id="login-title">Bienvenido de nuevo</h2>
+      <p class="text-secondary intro">Ingresa con tu cuenta de la estación.</p>
+
+      @if (auth.restorationIssue() === 'unavailable') {
+        <div class="alert alert-warning" role="status">
+          <p>No pudimos comprobar tu sesión guardada. Verifica que el servidor local esté encendido.</p>
+          <button type="button" class="btn btn-outline-primary btn-sm" (click)="retrySession()" [disabled]="loading() || auth.isRestoring()">Reintentar sesión</button>
+        </div>
+      } @else if (auth.restorationIssue() === 'invalid') {
+        <div class="alert alert-warning" role="status">Tu sesión guardada ya no es válida. Inicia sesión nuevamente.</div>
+      }
+      @if (expired()) {
+        <div class="alert alert-warning" role="status">Tu sesión ha vencido. Inicia sesión para continuar.</div>
+      }
+      @if (error(); as failure) {
+        <div class="alert alert-danger" role="alert" id="login-error">
+          <div class="d-flex gap-2"><i class="bi bi-exclamation-circle mt-1" aria-hidden="true"></i><span>{{ failure.message }}</span></div>
+          @if (failure.requestId) { <small class="d-block mt-2">Referencia: {{ failure.requestId }}</small> }
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate [attr.aria-busy]="loading()">
+        <div class="mb-4">
+          <label for="correo" class="form-label">Correo electrónico</label>
+          <div class="input-with-icon">
+            <i class="bi bi-envelope" aria-hidden="true"></i>
+            <input id="correo" type="email" class="form-control" formControlName="correo"
+              autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" maxlength="254"
+              placeholder="nombre@estacion.com" [class.is-invalid]="form.controls.correo.touched && form.controls.correo.invalid"
+              [attr.aria-invalid]="form.controls.correo.touched && form.controls.correo.invalid"
+              [attr.aria-describedby]="form.controls.correo.touched && form.controls.correo.invalid ? 'correo-error' : null" />
+          </div>
+          @if (form.controls.correo.touched && form.controls.correo.invalid) {
+            <div id="correo-error" class="invalid-feedback d-block">Ingresa un correo electrónico válido.</div>
+          }
+        </div>
+
+        <div class="mb-4">
+          <label for="password" class="form-label">Contraseña</label>
+          <div class="input-with-icon password-field">
+            <i class="bi bi-lock" aria-hidden="true"></i>
+            <input id="password" [type]="showPassword() ? 'text' : 'password'" class="form-control"
+              formControlName="password" autocomplete="current-password" maxlength="72" placeholder="Ingresa tu contraseña"
+              [class.is-invalid]="form.controls.password.touched && form.controls.password.invalid"
+              [attr.aria-invalid]="form.controls.password.touched && form.controls.password.invalid"
+              [attr.aria-describedby]="form.controls.password.touched && form.controls.password.invalid ? 'password-error' : null" />
+            <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())"
+              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              [attr.aria-pressed]="showPassword()" [disabled]="loading()">
+              <i [class]="showPassword() ? 'bi bi-eye-slash' : 'bi bi-eye'" aria-hidden="true"></i>
+            </button>
+          </div>
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <div id="password-error" class="invalid-feedback d-block">
+              {{ form.controls.password.hasError('required') ? 'Ingresa tu contraseña.' : 'La contraseña supera el límite de 72 bytes UTF-8.' }}
+            </div>
+          }
+        </div>
+
+        <button type="submit" class="btn btn-primary login-button w-100" [disabled]="loading()">
+          @if (loading()) { <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span> Ingresando… }
+          @else { Iniciar sesión <i class="bi bi-arrow-right ms-2" aria-hidden="true"></i> }
+        </button>
+        <span class="visually-hidden" role="status">{{ loading() ? 'Comprobando tus credenciales.' : '' }}</span>
+      </form>
+
+      <p class="session-hint">La sesión se conserva en este navegador hasta su vencimiento. Cierra sesión si compartes el equipo.</p>
+      <p class="access-help"><i class="bi bi-info-circle" aria-hidden="true"></i> Si necesitas acceso, comunícate con el administrador de tu estación.</p>
+    </div>
+    <footer class="access-footer"><i class="bi bi-shield-check" aria-hidden="true"></i> Acceso exclusivo para personal autorizado</footer>
+  </section>
+</main>

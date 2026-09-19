@@ -1,0 +1,23 @@
+:host { display: block; }
+.topbar { min-height: 5.25rem; padding: 1rem 2rem; background: white; border-bottom: 1px solid var(--sm-border); flex-wrap: nowrap; gap: 1rem; }
+.workspace-label { display: flex; gap: .75rem; align-items: center; font-size: .875rem; color: var(--sm-muted); }
+.workspace-label > i { font-size: 1.3rem; }
+.station-brand { display: block; color: var(--sm-text); font-weight: 600; margin-top: .1rem; }
+.account { display: flex; gap: .7rem; align-items: center; min-width: 0; }
+.avatar { display: grid; place-items: center; flex-shrink: 0; width: 2.6rem; height: 2.6rem; border-radius: 50%; background: #eaf3ee; color: var(--sm-green); font-size: .875rem; font-weight: 650; }
+.account-text { min-width: 0; }
+.user-name { display: block; max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .875rem; font-weight: 600; }
+.user-role { display: block; font-size: .75rem; color: var(--sm-muted); }
+.account-divider { height: 2rem; width: 1px; background: var(--sm-border); margin: 0 .4rem; }
+.logout-button { display: flex; gap: .5rem; align-items: center; color: var(--sm-muted); font-size: .875rem; min-height: 2.75rem; white-space: nowrap; }
+.logout-button:hover { background: #fdf0f1; color: #b92430; }
+.menu-button { display: none; }
+@media (max-width: 1199.98px) { .logout-button > span { display: none; } }
+@media (max-width: 991.98px) { .menu-button { display: inline-flex; } .topbar { padding: .75rem 1.25rem; } }
+@media (max-width: 575.98px) {
+  .topbar { padding: .75rem 1rem; min-height: 4.5rem; gap: .5rem; }
+  .workspace-label { display: none; }
+  .account { gap: .5rem; flex: 1; justify-content: flex-end; }
+  .user-name { max-width: 10rem; }
+  .account-divider { display: none; }
+}

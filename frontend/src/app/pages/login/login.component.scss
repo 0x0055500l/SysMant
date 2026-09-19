@@ -1,0 +1,43 @@
+:host { display: block; }
+.login-page { min-height: 100dvh; display: grid; grid-template-columns: 46% 54%; }
+.identity-panel { background: #07583f; color: white; padding: 3rem 3.7rem 2.25rem; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+.identity-panel::after { content: ''; position: absolute; width: 32rem; height: 32rem; border: 1px solid #ffffff12; border-radius: 50%; bottom: -19rem; right: -10rem; box-shadow: 0 0 0 4rem #ffffff05, 0 0 0 8rem #ffffff04; pointer-events: none; }
+.identity-copy { margin: auto 0; padding: 5rem 0; max-width: 30rem; position: relative; z-index: 1; }
+.eyebrow { font-size: .75rem; letter-spacing: .13rem; font-weight: 650; }
+.identity-copy .eyebrow { color: #bedbce; }
+h1 { font-size: clamp(2.4rem, 3.45vw, 3.65rem); font-weight: 650; line-height: 1.13; letter-spacing: -.1rem; margin: 1.4rem 0; }
+h1 > span { color: #ff626b; }
+.identity-copy > p { color: #d0e4dc; line-height: 1.7; max-width: 23rem; }
+.identity-rule { width: 3rem; height: 3px; background: #e3343d; margin: 2rem 0; }
+.identity-signature { display: flex; align-items: center; gap: 1rem; font-size: .875rem; color: #d0e4dc; line-height: 1.6; }
+.identity-signature > i { font-size: 1.4rem; }
+.identity-footer { display: flex; gap: 1rem; justify-content: space-between; flex-wrap: wrap; font-size: .75rem; color: #d0e4dc; z-index: 1; }
+.identity-footer > :first-child { color: white; font-size: 1rem; font-weight: 650; }
+.access-panel { padding: 3rem 3rem 2rem; background: white; display: flex; flex-direction: column; align-items: center; }
+.login-form-container { width: 100%; max-width: 26rem; margin: auto; padding: 2rem 0; }
+.access-icon { display: inline-flex; align-items: center; justify-content: center; width: 3.4rem; height: 3.4rem; border: 1px solid #d9e9e1; border-radius: 1rem; background: #f0f7f3; color: #07583f; font-size: 1.6rem; margin-bottom: 1.75rem; }
+h2 { font-size: 2rem; font-weight: 650; letter-spacing: -.06rem; }
+.intro { margin-bottom: 2rem; }
+.form-label { font-size: .875rem; font-weight: 600; margin-bottom: .65rem; }
+.input-with-icon { position: relative; }
+.input-with-icon > i { position: absolute; top: .88rem; left: 1rem; color: #7a8780; pointer-events: none; }
+.form-control { min-height: 3.25rem; padding-left: 2.8rem; font-size: .9375rem; border-color: #d7dfdb; }
+.password-field .form-control { padding-right: 3rem; background-image: none; }
+.password-toggle { position: absolute; right: .25rem; top: .25rem; border: 0; background: transparent; color: #67766d; width: 2.75rem; height: 2.75rem; border-radius: .4rem; }
+.password-toggle:hover { background: #f0f5f2; }
+.login-button { min-height: 3.25rem; font-weight: 600; }
+.session-hint { color: #65736c; font-size: .8125rem; line-height: 1.6; margin: 1rem 0 0; }
+.access-help { display: flex; align-items: flex-start; gap: .65rem; color: #65736c; font-size: .875rem; line-height: 1.6; margin-top: 1.75rem; border-top: 1px solid #e8eeeb; padding-top: 1.5rem; }
+.access-footer { margin-top: 2rem; font-size: .75rem; color: #65736c; text-align: center; }
+.access-footer > i { margin-right: .4rem; }
+.mobile-brand { display: none; }
+@media (max-width: 1100px) { .identity-panel { padding-inline: 2.4rem; } }
+@media (max-width: 767.98px) {
+  .login-page { grid-template-columns: 1fr; }
+  .identity-panel { display: none; }
+  .access-panel { padding: 1.75rem 1.5rem; min-height: 100dvh; border-top: 5px solid #07583f; }
+  .mobile-brand { display: block; align-self: flex-start; color: #07583f; margin-bottom: 1rem; }
+  .login-form-container { padding: 2rem 0 0; }
+  .access-icon { margin-bottom: 1.5rem; }
+  h2 { font-size: 1.8rem; }
+}

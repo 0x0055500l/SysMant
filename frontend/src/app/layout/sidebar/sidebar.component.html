@@ -1,0 +1,23 @@
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <a routerLink="/dashboard" (click)="navigate.emit()" aria-label="SysMant, ir al inicio"><app-brand /></a>
+    @if (mobile()) {
+      <button type="button" class="btn close-menu" aria-label="Cerrar menú de navegación" (click)="navigate.emit()"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+    }
+  </div>
+  <nav aria-label="Navegación principal">
+    <p class="navigation-label">OPERACIÓN</p>
+    <ul class="nav flex-column gap-1">
+      @for (item of items(); track item.path) {
+        <li class="nav-item"><a class="nav-link" [routerLink]="item.path" routerLinkActive="active"
+          ariaCurrentWhenActive="page" (click)="navigate.emit()"><i [class]="'bi ' + item.icon" aria-hidden="true"></i>{{ item.label }}</a></li>
+      }
+    </ul>
+    @if (auth.userRole() === 'admin') {
+      <p class="navigation-label administration-label">ADMINISTRACIÓN</p>
+      <ul class="nav flex-column"><li class="nav-item"><a class="nav-link" routerLink="/usuarios" routerLinkActive="active"
+        ariaCurrentWhenActive="page" (click)="navigate.emit()"><i class="bi bi-people" aria-hidden="true"></i>Usuarios</a></li></ul>
+    }
+  </nav>
+  <div class="sidebar-footer"><span class="footer-mark"></span><div><strong>Puma Energy</strong><span>Gestión de mantenimiento</span></div></div>
+</aside>

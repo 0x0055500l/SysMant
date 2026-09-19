@@ -1,0 +1,35 @@
+@use 'bootstrap/scss/bootstrap' with (
+  $primary: #07583f,
+  $success: #24734f,
+  $danger: #cc2e3c,
+  $body-color: #24372d,
+  $body-bg: #f5f7f6,
+  $secondary: #65736c,
+  $border-radius: .5rem,
+  $font-family-sans-serif: ("Segoe UI", system-ui, -apple-system, sans-serif)
+);
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+:root {
+  --sm-green: #07583f;
+  --sm-red: #d83240;
+  --sm-text: #24372d;
+  --sm-muted: #65736c;
+  --sm-border: #e1e7e3;
+}
+body { margin: 0; -webkit-font-smoothing: antialiased; }
+.session-loading { display: grid; place-items: center; min-height: 100dvh; color: var(--sm-green); font-size: 1rem; }
+button, input, a { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid #c93749; outline-offset: 3px; }
+.min-width-0 { min-width: 0; }
+.icon-button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; min-width: 2.75rem; font-size: 1.5rem; color: var(--sm-green); }
+.page-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.75rem; }
+.page-eyebrow { color: var(--sm-muted); font-size: .75rem; letter-spacing: .1rem; font-weight: 600; margin-bottom: .55rem; }
+.page-heading h1 { font-size: 1.85rem; font-weight: 650; letter-spacing: -.045rem; margin: 0; }
+.workspace-badge { display: inline-flex; align-items: center; gap: .5rem; padding: .5rem .75rem; border: 1px solid var(--sm-border); border-radius: .5rem; background: white; font-size: .8125rem; color: var(--sm-muted); white-space: nowrap; }
+.empty-page { padding: clamp(2rem, 7vw, 5rem) 1.5rem; background: white; border: 1px solid var(--sm-border); border-radius: .85rem; text-align: center; }
+.empty-page-icon { display: grid; place-items: center; width: 4rem; height: 4rem; border-radius: 1rem; margin: 0 auto 1.5rem; background: #eaf3ee; font-size: 1.8rem; color: var(--sm-green); }
+.empty-page h1, .empty-page h2 { font-size: 1.6rem; font-weight: 600; }
+.empty-page > p:not(.page-eyebrow) { max-width: 31rem; margin-inline: auto; color: var(--sm-muted); }
+@media (max-width: 575.98px) { .workspace-badge { display: none; } .page-heading h1 { font-size: 1.65rem; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }

@@ -1,0 +1,16 @@
+.app-shell { min-height: 100dvh; display: grid; grid-template-columns: 16.5rem minmax(0, 1fr); }
+.desktop-sidebar { position: sticky; top: 0; height: 100dvh; overflow-y: auto; }
+.shell-workspace { display: flex; flex-direction: column; min-width: 0; }
+.main-content { flex: 1; padding: 2.25rem 2.5rem; }
+.workspace-footer { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: space-between; padding: 1.25rem 2.5rem; color: var(--sm-muted); font-size: .75rem; }
+.mobile-navigation { padding: 0; border: 0; margin: 0; width: min(21rem, 90vw); height: 100dvh; max-height: 100dvh; max-width: none; background: var(--sm-green); }
+.mobile-navigation::backdrop { background: #10261e80; }
+.skip-link { position: fixed; left: 1rem; top: -5rem; z-index: 1100; background: white; color: var(--sm-green); padding: .75rem 1rem; border-radius: .5rem; }
+.skip-link:focus { top: 1rem; }
+@media (max-width: 991.98px) {
+  .app-shell { grid-template-columns: minmax(0, 1fr); }
+  .desktop-sidebar { display: none; }
+  .main-content { padding: 1.75rem; }
+  .workspace-footer { padding: 1.25rem 1.75rem; }
+}
+@media (max-width: 575.98px) { .main-content { padding: 1.5rem 1rem; } .workspace-footer { padding-inline: 1rem; } }

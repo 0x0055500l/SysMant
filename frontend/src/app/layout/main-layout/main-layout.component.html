@@ -1,0 +1,12 @@
+<a class="skip-link" href="#main-content">Saltar al contenido</a>
+<div class="app-shell">
+  <app-sidebar class="desktop-sidebar" />
+  <div class="shell-workspace">
+    <app-navbar (menuToggle)="openMenu()" />
+    <main id="main-content" class="main-content" tabindex="-1"><router-outlet /></main>
+    <footer class="workspace-footer"><span>SysMant · Gestión y control de mantenimiento</span><span>Puma Energy</span></footer>
+  </div>
+</div>
+<dialog #mobileMenu id="mobile-navigation" class="mobile-navigation" aria-label="Menú de navegación" (click)="closeOnBackdrop($event)">
+  <app-sidebar [mobile]="true" (navigate)="closeMenu()" />
+</dialog>

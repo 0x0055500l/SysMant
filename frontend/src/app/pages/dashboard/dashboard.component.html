@@ -1,0 +1,38 @@
+<div class="page-heading">
+  <div><p class="page-eyebrow">CENTRO DE MANTENIMIENTO</p><h1>Inicio</h1></div>
+  <span class="workspace-badge"><i class="bi bi-building" aria-hidden="true"></i> Mi estación</span>
+</div>
+
+<section class="welcome-panel" aria-labelledby="welcome-title">
+  <div class="welcome-copy">
+    <div class="welcome-label"><span class="welcome-line"></span> TU ESPACIO DE TRABAJO</div>
+    <h2 id="welcome-title">Bienvenido, {{ auth.currentUser()?.nombre }}</h2>
+    <p>Todo comienza con un equipo bien cuidado.</p>
+    <span class="role-badge"><i class="bi bi-person-badge" aria-hidden="true"></i>{{ auth.roleLabel() }}</span>
+  </div>
+  <div class="welcome-emblem" aria-hidden="true"><i class="bi bi-tools"></i></div>
+</section>
+
+<section aria-labelledby="indicators-title" class="indicators-section">
+  <div class="section-heading"><h2 id="indicators-title">Resumen de la estación</h2><span>Indicadores operativos</span></div>
+  <div class="row g-3">
+    @for (indicator of indicators; track indicator.label) {
+      <div class="col-12 col-sm-6 col-xl-3">
+        <article class="indicator-card h-100" [attr.aria-label]="indicator.label + ': datos aún no disponibles'">
+          <span [class]="'indicator-icon ' + indicator.tone"><i [class]="'bi ' + indicator.icon" aria-hidden="true"></i></span>
+          <h3>{{ indicator.label }}</h3>
+          <div class="indicator-value" aria-hidden="true">—</div>
+          <p>Datos aún no disponibles</p>
+        </article>
+      </div>
+    }
+  </div>
+</section>
+
+<section class="overview-panel" aria-labelledby="overview-title">
+  <div class="overview-heading"><h2 id="overview-title">Vista general</h2><i class="bi bi-layout-text-window-reverse" aria-hidden="true"></i></div>
+  <div class="overview-empty"><span class="empty-icon"><i class="bi bi-bar-chart-line" aria-hidden="true"></i></span>
+    <h3>Tu estación, en un solo lugar</h3>
+    <p>Los indicadores de equipos y mantenimiento aparecerán aquí cuando estén disponibles.</p>
+  </div>
+</section>

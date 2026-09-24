@@ -1,0 +1,26 @@
+<header class="sm-page-header"><div><p class="page-eyebrow">INVENTARIO · {{ editing ? 'EDICIÓN' : 'REGISTRO' }}</p><h1 class="page-heading">{{ editing ? 'Editar equipo' : 'Nuevo equipo' }}</h1><p class="text-body-secondary mb-0">{{ editing ? 'Actualiza la ficha técnica del equipo.' : 'Agrega un equipo al inventario de la estación.' }} Los campos con * son obligatorios.</p></div></header>
+<app-error-notice [error]="loadError()" />
+@if (loadError()) { <div class="d-flex gap-2"><button class="btn btn-outline-primary" (click)="load()">Reintentar consulta</button><a class="btn btn-outline-secondary" routerLink="/equipos">Volver a equipos</a></div> }
+@if (loading()) { <div class="sm-loading" role="status"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Cargando ficha…</div> }
+@if (!loading() && !loadError()) {
+  <form class="sm-panel sm-equipment-form" [formGroup]="form" (ngSubmit)="submit()" novalidate [attr.aria-busy]="saving()">
+    <div class="p-4"><h2 class="sm-section-title">Datos del equipo</h2><app-error-notice [error]="error()" />
+      @if (error()) { <p class="small text-body-secondary">Los campos se conservaron. Si falló la conexión durante el guardado, comprueba el inventario antes de volver a enviar.</p> }
+      <div class="row g-4">
+        @for (field of fields; track field.key) {
+          <div class="col-12 col-md-6"><label [for]="field.key" class="form-label">{{ field.label }}{{ field.required ? ' *' : '' }}</label><input class="form-control" [class.is-invalid]="invalid(field.key)" [id]="field.key" [formControlName]="field.key" [maxlength]="field.max" [attr.aria-required]="field.required" [attr.aria-invalid]="invalid(field.key)" [attr.aria-describedby]="invalid(field.key) ? field.key + '-error' : null" autocomplete="off">
+            @if (invalid(field.key)) { <div [id]="field.key + '-error'" class="invalid-feedback">{{ field.label }}: ingresa un valor de hasta {{ field.max }} caracteres{{ field.required ? ', sin dejarlo vacío' : '' }}.</div> }
+          </div>
+        }
+        <div class="col-12 col-md-6"><label for="fecha_instalacion" class="form-label">Fecha de instalación</label><input #installationDateInput id="fecha_instalacion" class="form-control" type="date" min="1000-01-01" max="9999-12-31" formControlName="fecha_instalacion" [class.is-invalid]="invalid('fecha_instalacion')" [attr.aria-invalid]="invalid('fecha_instalacion')" aria-describedby="date-help"><div id="date-help" [class]="invalid('fecha_instalacion') ? 'invalid-feedback' : 'form-text'">{{ invalid('fecha_instalacion') ? 'Ingresa una fecha válida a partir del año 1000.' : 'Opcional. Se guarda como fecha de calendario, sin cambio de zona horaria.' }}</div></div>
+        <div class="col-12 col-md-6"><label for="estado" class="form-label">Estado *</label><select id="estado" class="form-select" formControlName="estado" [class.is-invalid]="invalid('estado')">@for (estado of estados; track estado.value) { <option [value]="estado.value">{{ estado.label }}</option> }</select>
+          @if (form.controls.estado.value === 'baja') { <p class="form-text">La baja conserva el historial. El servidor impedirá el cambio si existen órdenes abiertas.</p> }
+        </div>
+      </div>
+    </div>
+    <footer class="sm-form-footer"><span class="small text-body-secondary">{{ editing ? 'El historial de mantenimiento se conserva.' : 'El código interno debe ser único.' }}</span><div class="d-flex gap-2">
+      @if (saving()) { <button type="button" class="btn btn-outline-secondary" disabled>Cancelar</button> } @else { <a class="btn btn-outline-secondary" [routerLink]="editing ? ['/equipos', id] : ['/equipos']">Cancelar</a> }
+      <button type="submit" class="btn btn-primary" [disabled]="saving()">@if (saving()) { <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Guardando… } @else { {{ editing ? 'Guardar cambios' : 'Registrar equipo' }} }</button>
+    </div></footer>
+  </form>
+}

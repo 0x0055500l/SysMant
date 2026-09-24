@@ -1,6 +1,6 @@
-<div class="page-heading">
-  <div><p class="page-eyebrow">CENTRO DE MANTENIMIENTO</p><h1>Inicio</h1></div>
-  <span class="workspace-badge"><i class="bi bi-building" aria-hidden="true"></i> Mi estación</span>
+<div class="sm-page-header">
+  <div><p class="page-eyebrow">CENTRO DE MANTENIMIENTO</p><h1 class="page-heading">Inicio</h1></div>
+  <button type="button" class="btn btn-outline-primary" [disabled]="loading()" (click)="reload()"><i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>{{ loading() ? 'Actualizando…' : 'Actualizar datos' }}</button>
 </div>
 
 <section class="welcome-panel" aria-labelledby="welcome-title">
@@ -14,25 +14,34 @@
 </section>
 
 <section aria-labelledby="indicators-title" class="indicators-section">
-  <div class="section-heading"><h2 id="indicators-title">Resumen de la estación</h2><span>Indicadores operativos</span></div>
+  <div class="section-heading"><h2 id="indicators-title">Resumen de la estación</h2><span>@if (updatedAt()) { Consulta: {{ updatedAt() | utcDate }} } @else { Consultando indicadores… }</span></div>
+  @if (auth.userRole() === 'tecnico') { <p class="small text-body-secondary">Tus alertas y órdenes asignadas; el inventario incluye todos los equipos de la estación.</p> }
+  @if (loading()) { <p class="small text-body-secondary" role="status"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Consultando la API local…</p> }
   <div class="row g-3">
-    @for (indicator of indicators; track indicator.label) {
+    @for (indicator of indicators(); track indicator.label) {
       <div class="col-12 col-sm-6 col-xl-3">
-        <article class="indicator-card h-100" [attr.aria-label]="indicator.label + ': datos aún no disponibles'">
+        <article class="indicator-card h-100" [attr.aria-label]="indicator.label" [attr.aria-busy]="loading()">
           <span [class]="'indicator-icon ' + indicator.tone"><i [class]="'bi ' + indicator.icon" aria-hidden="true"></i></span>
           <h3>{{ indicator.label }}</h3>
-          <div class="indicator-value" aria-hidden="true">—</div>
-          <p>Datos aún no disponibles</p>
+          <div class="indicator-value" [class.indicator-text]="indicator.label === 'Sincronización'">{{ indicator.value }}</div>
+          <p>{{ indicator.detail }}</p>
+          @if (indicator.error) { <div class="mt-3"><app-error-notice [error]="indicator.error" /></div> }
         </article>
       </div>
     }
   </div>
 </section>
 
-<section class="overview-panel" aria-labelledby="overview-title">
-  <div class="overview-heading"><h2 id="overview-title">Vista general</h2><i class="bi bi-layout-text-window-reverse" aria-hidden="true"></i></div>
-  <div class="overview-empty"><span class="empty-icon"><i class="bi bi-bar-chart-line" aria-hidden="true"></i></span>
-    <h3>Tu estación, en un solo lugar</h3>
-    <p>Los indicadores de equipos y mantenimiento aparecerán aquí cuando estén disponibles.</p>
-  </div>
+@if (snapshot()?.sincronizacion?.data?.ultimo_intento; as attempt) { <p class="small text-body-secondary mt-3 mb-0">Último intento de envío: {{ attempt.fecha_ultimo_intento || attempt.creado_en | utcDate }}</p> }
+<section class="sm-panel mt-4" aria-labelledby="urgent-title" [attr.aria-busy]="loading()">
+  <div class="sm-panel-heading"><div><h2 id="urgent-title" class="sm-section-title mb-1">{{ auth.userRole() === 'tecnico' ? 'Mis mantenimientos urgentes' : 'Mantenimientos urgentes' }}</h2><p class="small text-body-secondary mb-0">Órdenes vencidas y próximas a vencer en 7 días · Fechas en UTC</p></div><i class="bi bi-clock-history text-body-secondary" aria-hidden="true"></i></div>
+  <div class="px-4"><app-error-notice [error]="snapshot()?.urgentes?.error ?? null" /></div>
+  @if (snapshot()?.urgentes?.data; as response) {
+    @if (response.data.length) {
+      <div class="table-responsive"><table class="table sm-table align-middle"><caption class="visually-hidden">Órdenes que requieren atención</caption><thead><tr><th>Equipo / orden</th><th>Tipo / estado</th><th>Fecha programada</th><th>Responsable</th><th>Prioridad</th><th>Detalle</th></tr></thead><tbody>
+        @for (order of response.data; track order.id) { <tr><td><span class="sm-code">{{ order.equipo_codigo_interno }} · #{{ order.id }}</span><span class="fw-semibold">{{ order.equipo_nombre }}</span></td><td><app-status-badge [value]="order.tipo" /><span class="d-block mt-1"><app-status-badge [value]="order.estado" /></span></td><td>{{ order.fecha_programada | utcDate }}</td><td>{{ order.responsable_nombre }}</td><td><app-status-badge [value]="order.urgencia" /></td><td><a class="btn btn-sm btn-outline-secondary text-nowrap" [routerLink]="['/equipos', order.id_equipo]" fragment="historial" [attr.aria-label]="'Ver equipo de la orden ' + order.id">Ver equipo<i class="bi bi-arrow-up-right ms-2" aria-hidden="true"></i></a></td></tr> }
+      </tbody></table></div>
+    } @else { <div class="sm-empty"><i class="bi bi-check2-circle" aria-hidden="true"></i><h3>Sin órdenes urgentes</h3><p>No hay mantenimientos vencidos ni próximos para esta consulta.</p></div> }
+    <app-pagination [pagination]="response.pagination" [showLimit]="false" [disabled]="loading()" label="Paginación de órdenes urgentes" (pageChange)="changePage($event)" />
+  }
 </section>

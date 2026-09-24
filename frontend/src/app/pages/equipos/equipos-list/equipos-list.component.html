@@ -1,0 +1,37 @@
+<header class="sm-page-header">
+  <div><p class="page-eyebrow">ESTACIÓN · INVENTARIO</p><h1 class="page-heading">Equipos</h1><p class="text-body-secondary mb-0">Consulta el estado y el historial de los equipos de la estación.</p></div>
+  @if (canManage()) { <a routerLink="/equipos/nuevo" class="btn btn-primary"><i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Nuevo equipo</a> }
+</header>
+<section class="sm-panel" aria-label="Inventario de equipos">
+  <form class="sm-filters" [formGroup]="filters" (submit)="$event.preventDefault()">
+    <div class="sm-search"><label for="equipment-search" class="form-label">Buscar equipo</label><input id="equipment-search" type="search" class="form-control" formControlName="busqueda" maxlength="150" placeholder="Código, nombre, marca o serie" autocomplete="off"></div>
+    <div><label for="equipment-state" class="form-label">Estado</label><select id="equipment-state" class="form-select" formControlName="estado"><option value="">Todos los estados</option>@for (estado of estados; track estado.value) { <option [value]="estado.value">{{ estado.label }}</option> }</select></div>
+    <div><label for="equipment-area" class="form-label">Área</label>
+      @if (areasUnavailable()) {
+        <input id="equipment-area" class="form-control" formControlName="area" maxlength="120" placeholder="Nombre exacto del área">
+      } @else {
+        <select id="equipment-area" class="form-select" formControlName="area"><option value="">Todas las áreas</option>
+          @if (filters.controls.area.value && !areas().includes(filters.controls.area.value)) { <option [value]="filters.controls.area.value">{{ filters.controls.area.value }}</option> }
+          @for (area of areas(); track area) { <option [value]="area">{{ area }}</option> }
+        </select>
+      }
+    </div>
+    <button type="button" class="btn btn-outline-secondary" (click)="clearFilters()">Limpiar</button>
+  </form>
+  @if (areasUnavailable()) { <p class="small text-body-secondary px-4">No se pudo cargar el catálogo de áreas. Puedes filtrar escribiendo el nombre exacto.</p> }
+  <div class="px-4"><app-error-notice [error]="error()" /></div>
+  @if (error()) { <div class="px-4 pb-4"><button class="btn btn-outline-primary" (click)="reload()">Reintentar consulta</button></div> }
+  @if (loading()) {
+    <div class="sm-loading" role="status"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Cargando inventario…</div>
+  }
+  @if (result(); as response) {
+    @if (response.data.length) {
+      <div class="table-responsive"><table class="table sm-table align-middle"><caption class="visually-hidden">Equipos registrados y acciones disponibles</caption><thead><tr><th>Código / nombre</th><th>Marca / modelo</th><th>Área / estación</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+        <tbody>@for (equipo of response.data; track equipo.id) {
+          <tr><td><span class="sm-code">{{ equipo.codigo_interno }}</span><a class="sm-record-link" [routerLink]="['/equipos', equipo.id]">{{ equipo.nombre }}</a></td><td>{{ equipo.marca || '—' }}<span class="sm-cell-secondary">{{ equipo.modelo || 'Sin modelo' }}</span></td><td>{{ equipo.area }}<span class="sm-cell-secondary">{{ equipo.estacion }}</span></td><td><app-status-badge [value]="equipo.estado" /></td><td class="text-end text-nowrap"><a class="btn btn-sm btn-outline-secondary" [routerLink]="['/equipos', equipo.id]" [attr.aria-label]="'Ver detalle de ' + equipo.nombre">Ver detalle</a>@if (canManage()) { <a class="btn btn-sm btn-link ms-1" [routerLink]="['/equipos', equipo.id, 'editar']" [attr.aria-label]="'Editar ' + equipo.nombre">Editar</a> }</td></tr>
+        }</tbody>
+      </table></div>
+    } @else { <div class="sm-empty"><i class="bi bi-search" aria-hidden="true"></i><h2>No hay equipos para mostrar</h2><p>Ajusta los filtros o registra el primer equipo.</p></div> }
+    <app-pagination [pagination]="response.pagination" [disabled]="loading()" (pageChange)="changePage($event)" (limitChange)="changeLimit($event)" />
+  }
+</section>

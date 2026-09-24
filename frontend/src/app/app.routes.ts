@@ -19,8 +19,7 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dashboard/dashboard.component').then((m) => m.DashboardComponent),
       },
       {
-        path: 'equipos', title: 'Equipos | SysMant', loadComponent: pendingModule,
-        data: { moduleTitle: 'Equipos', moduleIcon: 'bi-hdd-stack', moduleDescription: 'Aquí estará el inventario de equipos de tu estación.' },
+        path: 'equipos', loadChildren: () => import('./pages/equipos/equipos.routes').then((m) => m.EQUIPOS_ROUTES),
       },
       {
         path: 'mantenimientos', title: 'Mantenimientos | SysMant', canActivate: [roleGuard], loadComponent: pendingModule,

@@ -1,34 +1,8 @@
 import { expect, Page, test } from '@playwright/test';
-
-type Role = 'admin' | 'supervisor' | 'tecnico';
-const API = 'http://127.0.0.1:3000/api';
-
-function authData(role: Role = 'admin') {
-  const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString('base64url');
-  const id = '9007199254740993';
-  const now = Math.floor(Date.now() / 1000);
-  return {
-    token: `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ id, sub: id, nombre: 'Ana Torres', rol: role, iat: now, exp: now + 3600 })}.cHJ1ZWJh`,
-    usuario: { id, nombre: 'Ana Torres', correo: 'ana@sysmant.local', rol: role },
-  };
-}
+import { API, authData, mockApi, Role } from './fixtures/api.fixture';
 
 async function mockLogin(page: Page, role: Role = 'admin') {
-  const data = authData(role);
-  await page.context().route(`${API}/**`, async (route) => {
-    if (route.request().method() === 'OPTIONS') return route.fulfill({
-      status: 204,
-      headers: { 'Access-Control-Allow-Origin': 'http://localhost:4200', 'Access-Control-Allow-Headers': 'Content-Type, Authorization', 'Access-Control-Allow-Methods': 'POST, GET' },
-    });
-    if (route.request().url() === `${API}/equipos?limit=1`) {
-      expect(route.request().headers()['authorization']).toBe(`Bearer ${data.token}`);
-      return route.fulfill({ json: { data: [] }, headers: { 'Access-Control-Allow-Origin': 'http://localhost:4200' } });
-    }
-    if (route.request().url() !== `${API}/auth/login`) throw new Error('La Fase 4.1 solo autentica y comprueba la sesión.');
-    expect(route.request().postDataJSON()).toEqual({ correo: 'ana@sysmant.local', password: 'Clave de prueba segura' });
-    expect(route.request().headers()['authorization']).toBeUndefined();
-    await route.fulfill({ json: { data }, headers: { 'Access-Control-Allow-Origin': 'http://localhost:4200' } });
-  });
+  const { data } = await mockApi(page, role);
   return data;
 }
 
@@ -46,12 +20,12 @@ async function openNavigation(page: Page) {
   if (await menu.isVisible()) await menu.click();
 }
 
-test('login, sesión persistida al recargar, dashboard vacío y logout', async ({ page }, info) => {
+test('login, sesión persistida al recargar, dashboard con métricas y logout', async ({ page }, info) => {
   const runtimeErrors: string[] = [];
   page.on('pageerror', (error) => runtimeErrors.push(error.message));
   await signIn(page);
   await expect(page.getByRole('heading', { name: 'Bienvenido, Ana Torres' })).toBeVisible();
-  await expect(page.locator('.indicator-value')).toHaveText(['—', '—', '—', '—']);
+  await expect(page.locator('.indicator-value')).toHaveText(['2', '3', '36', 'Modo local']);
   await expect(page.getByText('Administrador', { exact: true }).first()).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath('dashboard.png'), fullPage: true });

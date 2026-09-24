@@ -18,7 +18,8 @@
 .red { color: #bf3441; background: #fcedef; }
 .amber { color: #98671d; background: #fcf4e6; }
 .indicator-card h3 { font-size: .875rem; font-weight: 500; color: #526159; margin: 0; }
-.indicator-value { font-size: 2rem; font-weight: 500; line-height: 1.65; color: #9ba9a0; }
+.indicator-value { font-size: 2.25rem; font-weight: 650; line-height: 1.65; color: var(--sm-text); font-variant-numeric: tabular-nums; }
+.indicator-text { font-size: 1.25rem; min-height: 3.7rem; display: flex; align-items: center; line-height: 1.25; }
 .indicator-card p { margin: 0; color: #748078; font-size: .75rem; }
 .overview-panel { background: white; border: 1px solid var(--sm-border); border-radius: .75rem; margin-top: 1.5rem; }
 .overview-heading { display: flex; justify-content: space-between; padding: 1.15rem 1.5rem; border-bottom: 1px solid #edf0ee; }

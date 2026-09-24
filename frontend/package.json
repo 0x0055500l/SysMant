@@ -1,8 +1,8 @@
 {
   "name": "sysmant-frontend",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "private": true,
-  "description": "SysMant: acceso y navegación para la gestión local de mantenimiento",
+  "description": "SysMant: autenticación, dashboard e inventario para la gestión local de mantenimiento",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --host localhost --port 4200",

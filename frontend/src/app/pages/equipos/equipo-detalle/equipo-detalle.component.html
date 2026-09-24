@@ -1,0 +1,30 @@
+<a routerLink="/equipos" class="sm-back-link"><i class="bi bi-arrow-left me-2" aria-hidden="true"></i>Volver a equipos</a>
+<app-error-notice [error]="error()" />
+@if (error()) { <button type="button" class="btn btn-outline-primary" (click)="reload()">Reintentar consulta</button> }
+@if (loading()) { <div class="sm-loading" role="status"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Cargando equipo…</div> }
+@if (equipo(); as item) {
+  <header class="sm-page-header"><div><p class="page-eyebrow">{{ item.codigo_interno }}</p><h1 class="page-heading">{{ item.nombre }}</h1><app-status-badge [value]="item.estado" /></div>
+    @if (canManage()) { <div class="d-flex gap-2 flex-wrap"><a class="btn btn-primary" [routerLink]="['/equipos', item.id, 'editar']"><i class="bi bi-pencil me-2" aria-hidden="true"></i>Editar equipo</a>@if (item.estado !== 'baja') { <button type="button" class="btn btn-outline-danger" (click)="openRetire()">Dar de baja</button> }</div> }
+  </header>
+  @if (retired()) { <div class="alert alert-success" role="status">El equipo se dio de baja. Su historial se conserva.</div> }
+  <section class="sm-panel p-4 mb-4" aria-labelledby="technical-title"><h2 id="technical-title" class="sm-section-title">Ficha técnica</h2>
+    <dl class="sm-spec-grid"><div><dt>Código interno</dt><dd>{{ item.codigo_interno }}</dd></div><div><dt>Marca</dt><dd>{{ item.marca || 'Sin especificar' }}</dd></div><div><dt>Modelo</dt><dd>{{ item.modelo || 'Sin especificar' }}</dd></div><div><dt>Número de serie</dt><dd>{{ item.serie || 'Sin especificar' }}</dd></div><div><dt>Área</dt><dd>{{ item.area }}</dd></div><div><dt>Estación</dt><dd>{{ item.estacion }}</dd></div><div><dt>Fecha de instalación</dt><dd>{{ item.fecha_instalacion | utcDate }}</dd></div><div><dt>Última actualización</dt><dd>{{ item.actualizado_en | utcDate }}</dd></div></dl>
+  </section>
+  <section id="historial" class="sm-panel" aria-labelledby="history-title"><div class="sm-panel-heading"><div><h2 id="history-title" class="sm-section-title mb-1">Historial de mantenimientos</h2><p class="small text-body-secondary mb-0">Del más reciente al más antiguo · Fechas en UTC</p></div><span class="sm-count">{{ item.historial_pagination.total }} órdenes</span></div>
+    @if (item.mantenimientos.length) {
+      <div class="table-responsive"><table class="table sm-table align-middle"><caption class="visually-hidden">Mantenimientos del equipo</caption><thead><tr><th>Orden / tipo</th><th>Programación</th><th>Realización</th><th>Responsable</th><th>Estado</th><th class="text-end">Costo</th></tr></thead><tbody>
+        @for (order of item.mantenimientos; track order.id) { <tr><td><span class="sm-code">#{{ order.id }}</span><app-status-badge [value]="order.tipo" /></td><td>{{ order.fecha_programada | utcDate }}</td><td>{{ order.fecha_realizada | utcDate }}</td><td>{{ order.responsable_nombre }}</td><td><app-status-badge [value]="order.estado" /></td><td class="text-end text-nowrap sm-amount">{{ order.costo | decimalAmount }}</td></tr> }
+      </tbody></table></div>
+    } @else { <div class="sm-empty"><i class="bi bi-clock-history" aria-hidden="true"></i><h3>Sin mantenimientos registrados</h3><p>Las órdenes asociadas aparecerán aquí.</p></div> }
+    <app-pagination [pagination]="item.historial_pagination" [limits]="[10, 20, 50]" label="Paginación del historial" (pageChange)="historyPage($event)" (limitChange)="historyLimit($event)" />
+  </section>
+  @if (canManage()) {
+    <dialog #retireDialog class="sm-dialog" aria-labelledby="retire-title" aria-describedby="retire-description" (cancel)="cancelRetire($event)">
+      <div class="p-4"><span class="sm-dialog-icon"><i class="bi bi-archive" aria-hidden="true"></i></span><h2 id="retire-title" class="h4 mt-3">Dar de baja este equipo</h2><p id="retire-description">{{ item.nombre }} pasará al estado «Baja». El equipo y todo su historial se conservarán. No podrá darse de baja si tiene órdenes abiertas.</p>
+        <app-error-notice [error]="retireError()" />
+        @if (retireError()) { <p class="small text-body-secondary">Si hubo un problema de conexión, consulta el estado del equipo antes de repetir la operación.</p> }
+        <div class="d-flex justify-content-end gap-2 mt-4"><button type="button" class="btn btn-outline-secondary" autofocus [disabled]="retiring()" (click)="closeRetire()">Cancelar</button><button type="button" class="btn btn-danger" [disabled]="retiring()" (click)="confirmRetire()">@if (retiring()) { <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span> }Confirmar baja</button></div>
+      </div>
+    </dialog>
+  }
+}

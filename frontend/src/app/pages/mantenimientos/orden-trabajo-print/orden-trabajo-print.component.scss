@@ -1,0 +1,40 @@
+app-orden-trabajo-print { display: block; }
+app-orden-trabajo-print .work-order-sheet { max-width: 210mm; margin: 0 auto; background: white; padding: 12mm; border: 1px solid var(--sm-border); border-radius: .6rem; color: #22352b; }
+app-orden-trabajo-print .work-order-header { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; border-bottom: 3px solid #c82e41; padding-bottom: 1.25rem; }
+app-orden-trabajo-print .work-order-brand { color: #07583f; font-size: 1.5rem; }
+app-orden-trabajo-print .work-order-brand span { color: #c82e41; }
+app-orden-trabajo-print .work-order-header p { font-size: .85rem; margin: .4rem 0; overflow-wrap: anywhere; }
+app-orden-trabajo-print .work-order-header h2 { font-size: 1rem; letter-spacing: .05rem; font-weight: 700; }
+app-orden-trabajo-print .work-order-sheet h3 { font-size: .85rem; font-weight: 700; margin: 1.5rem 0 1rem; padding: .5rem .65rem; background: #eef4f0; border-left: 3px solid #07583f; }
+app-orden-trabajo-print .work-order-sheet dl { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.5rem; }
+app-orden-trabajo-print .work-order-sheet dt { font-size: .72rem; color: #526159; font-weight: 500; }
+app-orden-trabajo-print .work-order-sheet dd { font-size: .9rem; margin: .3rem 0 0; overflow-wrap: anywhere; }
+app-orden-trabajo-print .work-order-checklist { list-style: none; padding: 0; font-size: .9rem; }
+app-orden-trabajo-print .work-order-checklist li { display: flex; align-items: baseline; gap: .65rem; padding: .65rem 0; border-bottom: 1px solid #e0e6e2; }
+app-orden-trabajo-print .work-order-checklist li > span:last-child { min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+app-orden-trabajo-print .check-square { width: 3mm; height: 3mm; border: 1px solid #47584c; flex-shrink: 0; }
+app-orden-trabajo-print .work-order-hint, app-orden-trabajo-print .work-order-footer { color: #526159; font-size: .75rem; }
+app-orden-trabajo-print .work-order-notes { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .875rem; }
+app-orden-trabajo-print .work-order-signatures { display: flex; gap: 2rem; margin: 5rem 0 2rem; break-inside: avoid; }
+app-orden-trabajo-print .work-order-signatures > div { width: 50%; border-top: 1px solid #526159; padding-top: .6rem; text-align: center; }
+app-orden-trabajo-print .work-order-signatures small { display: block; margin-top: .25rem; }
+app-orden-trabajo-print .work-order-footer { border-top: 1px solid #e0e6e2; padding-top: 1rem; }
+@media (max-width: 575.98px) { app-orden-trabajo-print .work-order-sheet { padding: 1.25rem; } }
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body:has(app-orden-trabajo-print) { background: white !important; }
+  body:has(app-orden-trabajo-print) .desktop-sidebar,
+  body:has(app-orden-trabajo-print) app-navbar,
+  body:has(app-orden-trabajo-print) .workspace-footer,
+  body:has(app-orden-trabajo-print) .skip-link,
+  body:has(app-orden-trabajo-print) .mobile-navigation,
+  app-orden-trabajo-print .print-controls { display: none !important; }
+  body:has(app-orden-trabajo-print) .app-shell,
+  body:has(app-orden-trabajo-print) .shell-workspace { display: block !important; min-height: 0 !important; }
+  body:has(app-orden-trabajo-print) .main-content { padding: 0 !important; }
+  app-orden-trabajo-print .work-order-sheet { max-width: none; width: 100%; border: 0; padding: 0; margin: 0; border-radius: 0; font-size: 10pt; print-color-adjust: exact; }
+  app-orden-trabajo-print .work-order-header,
+  app-orden-trabajo-print .work-order-sheet dl > div { break-inside: avoid; }
+  app-orden-trabajo-print .work-order-sheet h3 { break-after: avoid; }
+  app-orden-trabajo-print .work-order-sheet p { orphans: 3; widows: 3; }
+}

@@ -1,0 +1,10 @@
+:host { display: block; }
+.order-state-filters { display: flex; flex-wrap: wrap; gap: .5rem; padding: 1.25rem 1.5rem 0; }
+.personal-counters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.personal-counters article { padding: 1.25rem 1.5rem; background: white; border: 1px solid var(--sm-border); border-radius: .75rem; }
+.personal-counters span { font-size: .85rem; color: var(--sm-muted); display: block; }
+.personal-counters strong { font-size: 2rem; color: var(--sm-green); }
+.order-description { white-space: pre-wrap; overflow-wrap: anywhere; margin: .65rem 0; font-size: .85rem; min-width: 12rem; }
+.order-actions { display: flex; gap: .5rem; flex-direction: column; min-width: 8.5rem; }
+.sm-filters > div { flex-basis: 12rem; }
+@media (max-width: 575.98px) { .personal-counters { grid-template-columns: 1fr; } }

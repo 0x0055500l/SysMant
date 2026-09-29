@@ -22,12 +22,14 @@ export const routes: Routes = [
         path: 'equipos', loadChildren: () => import('./pages/equipos/equipos.routes').then((m) => m.EQUIPOS_ROUTES),
       },
       {
-        path: 'mantenimientos', title: 'Mantenimientos | SysMant', canActivate: [roleGuard], loadComponent: pendingModule,
-        data: { roles: ['admin', 'supervisor'], moduleTitle: 'Mantenimientos', moduleIcon: 'bi-tools', moduleDescription: 'Aquí podrás consultar y organizar el mantenimiento de la estación.' },
+        path: 'mantenimientos', title: 'Mantenimientos | SysMant', canActivate: [roleGuard],
+        loadComponent: () => import('./pages/mantenimientos/mantenimientos.component').then((m) => m.MantenimientosComponent),
+        data: { roles: ['admin', 'supervisor'] },
       },
       {
-        path: 'mis-ordenes', title: 'Mis órdenes | SysMant', canActivate: [roleGuard], loadComponent: pendingModule,
-        data: { roles: ['tecnico'], moduleTitle: 'Mis órdenes', moduleIcon: 'bi-clipboard-check', moduleDescription: 'Este espacio estará dedicado a las órdenes de mantenimiento asignadas a tu usuario.' },
+        path: 'mis-ordenes', title: 'Mis órdenes | SysMant', canActivate: [roleGuard],
+        loadComponent: () => import('./pages/mantenimientos/mantenimientos.component').then((m) => m.MantenimientosComponent),
+        data: { roles: ['tecnico'] },
       },
       {
         path: 'alertas', title: 'Alertas | SysMant', loadComponent: pendingModule,

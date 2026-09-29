@@ -1,0 +1,38 @@
+@if (preview(); as order) {
+  <app-orden-trabajo-print [order]="order" (dismissed)="closePreview()" />
+} @else {
+  <header class="sm-page-header"><div><p class="page-eyebrow">OPERACIÓN · ÓRDENES DE TRABAJO</p><h1 class="page-heading">{{ tecnico() ? 'Mis órdenes' : 'Mantenimientos' }}</h1><p class="text-body-secondary mb-0">{{ tecnico() ? 'Organiza y registra el trabajo asignado a tu usuario.' : 'Programa y supervisa el mantenimiento de la estación.' }}</p></div><div class="d-flex gap-2 flex-wrap"><button class="btn btn-outline-secondary" [disabled]="loading()" (click)="reload()" aria-label="Actualizar órdenes"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button>@if (canSchedule()) { <button class="btn btn-primary" (click)="programming.set(true)"><i class="bi bi-plus-lg me-2" aria-hidden="true"></i>Programar mantenimiento</button> }</div></header>
+  @if (tecnico()) { <section class="personal-counters" aria-label="Resumen de mis órdenes"><article><span>Mis órdenes pendientes</span><strong>{{ counters()?.pendiente ?? '—' }}</strong></article><article><span>Mis órdenes en proceso</span><strong>{{ counters()?.enProceso ?? '—' }}</strong></article></section><app-error-notice [error]="counterError()" /> }
+  @if (success()) { <div class="alert alert-success" role="status">{{ success() }}</div> }
+  <section class="sm-panel" aria-label="Listado de órdenes">
+    <div class="order-state-filters" role="group" aria-label="Filtrar órdenes por estado">@for (state of estados; track state.value) { <button type="button" class="btn btn-sm" [class.btn-primary]="filters.controls.estado.value === state.value" [class.btn-outline-secondary]="filters.controls.estado.value !== state.value" [attr.aria-pressed]="filters.controls.estado.value === state.value" (click)="filters.controls.estado.setValue(state.value)">{{ state.label }}</button> }</div>
+    <form class="sm-filters" [formGroup]="filters" (submit)="$event.preventDefault()">
+      <div><label for="filter-order-type" class="form-label">Tipo</label><select id="filter-order-type" class="form-select" formControlName="tipo"><option value="">Todos los tipos</option><option value="preventivo">Preventivo</option><option value="correctivo">Correctivo</option></select></div>
+      <div><label for="filter-order-equipment" class="form-label">Equipo</label>@if (manualEquipo()) { <input id="filter-order-equipment" class="form-control" inputmode="numeric" maxlength="20" formControlName="id_equipo" placeholder="ID de equipo"> } @else { <select id="filter-order-equipment" class="form-select" formControlName="id_equipo"><option value="">Todos los equipos</option>@if (filters.controls.id_equipo.value && !hasEquipmentOption(filters.controls.id_equipo.value)) { <option [value]="filters.controls.id_equipo.value">Equipo ID {{ filters.controls.id_equipo.value }}</option> }@for (equipo of equipos(); track equipo.id) { <option [value]="equipo.id">{{ equipo.codigo_interno }} · {{ equipo.nombre }}</option> }</select> }</div>
+      <div><label for="filter-order-from" class="form-label">Programada desde (UTC)</label><input id="filter-order-from" class="form-control" type="date" min="1000-01-01" max="9999-12-31" formControlName="fecha_desde"></div>
+      <div><label for="filter-order-until" class="form-label">Hasta (UTC)</label><input id="filter-order-until" class="form-control" type="date" min="1000-01-01" max="9999-12-31" formControlName="fecha_hasta"></div>
+      <button type="button" class="btn btn-outline-secondary" (click)="clear()">Limpiar</button>
+    </form>
+    @if (manualEquipo()) { <p class="small text-body-secondary px-4">El catálogo no está disponible. Puedes filtrar con un ID de equipo conocido.</p> }
+    @if (filters.invalid) { <p class="alert alert-warning mx-4" role="alert">Revisa el ID y las fechas. La fecha inicial no puede superar la final; estos filtros no se aplicaron.</p> }
+    <div class="px-4"><app-error-notice [error]="error()" /></div>
+    @if (error()) { <button type="button" class="btn btn-outline-primary mx-4 mb-4" (click)="reload()">Reintentar consulta</button> }
+    @if (loading()) { <div class="sm-loading" role="status"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Cargando órdenes…</div> }
+    @if (result(); as response) {
+      @if (response.data.length) {
+        <div class="table-responsive"><table class="table sm-table align-middle"><caption class="visually-hidden">Órdenes de mantenimiento, responsables y acciones</caption><thead><tr><th>Orden / equipo</th><th>Tipo / estado</th><th>Programada (UTC)</th><th>Responsable</th><th class="text-end">Costo (L)</th><th>Acciones</th></tr></thead><tbody>
+          @for (order of response.data; track order.id) {
+            <tr><td><span class="sm-code">#{{ order.id }} · {{ order.equipo_codigo_interno }}</span><a class="sm-record-link" [routerLink]="['/equipos', order.id_equipo]">{{ order.equipo_nombre }}</a><span class="sm-cell-secondary">{{ order.equipo_area }} · {{ order.equipo_estacion }}</span><details class="mt-2"><summary class="small">Actividades y observaciones</summary><p class="order-description">{{ order.descripcion }}</p><p class="order-description text-body-secondary">{{ order.observaciones || 'Sin observaciones.' }}</p>@if (order.fecha_realizada) { <p class="small">Realizado: {{ order.fecha_realizada | utcDate }}</p> }</details></td>
+            <td><app-status-badge [value]="order.tipo" /><span class="d-block mt-2"><app-status-badge [value]="order.estado" /></span></td>
+            <td>{{ order.fecha_programada | utcDate }}@if (urgency(order); as priority) { <span class="d-block mt-2"><app-status-badge [value]="priority" /></span> }</td>
+            <td>{{ order.responsable_nombre }}</td><td class="text-end text-nowrap sm-amount">{{ order.costo | decimalAmount }}<span class="sm-cell-secondary">{{ order.estado === 'completado' ? 'Final' : 'Registrado / estimado' }}</span></td>
+            <td><div class="order-actions">@if (canOperate(order)) { @if (order.estado === 'pendiente') { <button class="btn btn-sm btn-outline-primary" (click)="openAction(order, 'iniciar')">Iniciar trabajo</button> }<button class="btn btn-sm btn-primary" (click)="openAction(order, 'completar')">Cerrar orden</button> }<button [id]="'print-' + order.id" class="btn btn-sm btn-outline-secondary" (click)="preview.set(order)"><i class="bi bi-printer me-1" aria-hidden="true"></i>Ver / imprimir</button></div></td></tr>
+          }
+        </tbody></table></div>
+      } @else { <div class="sm-empty"><i class="bi bi-clipboard-check" aria-hidden="true"></i><h2>No hay órdenes para mostrar</h2><p>{{ tecnico() ? 'No tienes órdenes asignadas que coincidan con los filtros.' : 'Ajusta los filtros o programa un mantenimiento.' }}</p></div> }
+      <app-pagination [pagination]="response.pagination" [disabled]="loading() || filters.invalid" (pageChange)="changePage($event)" (limitChange)="changeLimit($event)" />
+    }
+  </section>
+}
+@if (programming() && canSchedule()) { <app-mantenimiento-form (dismissed)="programming.set(false)" (saved)="saved($event)" /> }
+@if (selected(); as selection) { <app-orden-actions [order]="selection.order" [action]="selection.action" (dismissed)="selected.set(null)" (saved)="saved($event)" (refreshRequested)="refreshAfterConflict()" /> }

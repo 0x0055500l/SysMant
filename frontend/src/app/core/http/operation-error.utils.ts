@@ -3,6 +3,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 export interface OperationError { message: string; requestId?: string; }
 
 const messages: Record<string, string> = {
+  MANTENIMIENTO_NO_ENCONTRADO: 'La orden ya no está disponible. Actualiza el listado.',
+  MANTENIMIENTO_NO_ASIGNADO: 'Solo puedes operar las órdenes que tienes asignadas.',
+  MANTENIMIENTO_NO_PENDIENTE: 'La orden ya no está pendiente. Actualiza el listado antes de continuar.',
+  MANTENIMIENTO_YA_COMPLETADO: 'La orden ya fue completada por otro proceso. Actualiza el listado.',
+  EQUIPO_DADO_DE_BAJA: 'El equipo está dado de baja y no admite esta operación.',
+  RESPONSABLE_INVALIDO: 'El responsable debe ser un técnico activo. Verifica su ID con administración.',
   EQUIPO_NO_ENCONTRADO: 'El equipo ya no está disponible. Regresa al inventario.',
   EQUIPO_CON_ORDENES_ABIERTAS: 'No se puede dar de baja: el equipo tiene órdenes pendientes o en proceso. Cierra esas órdenes primero.',
   EQUIPO_CON_MANTENIMIENTOS_EN_PROCESO: 'El equipo tiene mantenimientos en proceso y todavía no puede pasar a operativo.',
@@ -19,6 +25,11 @@ const messages: Record<string, string> = {
 };
 
 export function operationError(error: unknown): OperationError {
+  if (error instanceof Error && error.message === 'ORDER_SCOPE_MISMATCH') return { message: 'La respuesta contiene órdenes fuera de tu asignación. No se mostraron esos datos. Contacta a administración.' };
+  if (error instanceof Error && error.message === 'ORDER_EQUIPMENT_UNAVAILABLE') return { message: 'El equipo ya no está operativo. Actualiza el catálogo y selecciona un equipo operativo.' };
+  if (error instanceof Error && error.message === 'ORDER_COLLECTION_LIMIT') return { message: 'La consulta supera 5,000 registros. Acota los filtros o usa el listado sin fechas. En los selectores puedes ingresar un ID conocido.' };
+  if (error instanceof Error && error.message === 'ORDER_COLLECTION_CHANGED') return { message: 'Los registros cambiaron durante la consulta. Actualiza para obtener un resultado completo.' };
+  if (error instanceof Error && error.message === 'ORDER_ACCESS_DENIED') return { message: 'Tu sesión no permite esta operación.' };
   if (error instanceof Error && error.message === 'CATALOG_LIMIT') {
     return { message: 'La búsqueda admite hasta 5,000 equipos. Acota el estado o el área para buscar; el listado sin texto sigue disponible.' };
   }

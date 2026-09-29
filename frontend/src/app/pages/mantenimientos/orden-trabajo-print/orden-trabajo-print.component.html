@@ -1,0 +1,19 @@
+<div class="print-controls sm-page-header">
+  <div><p class="page-eyebrow">DOCUMENTO DE TRABAJO</p><h1 #heading tabindex="-1" class="page-heading">Vista previa de la orden</h1><p class="text-body-secondary mb-0">Revisa la ficha antes de imprimir. Puedes elegir Guardar como PDF en el diálogo del navegador.</p></div>
+  <div class="d-flex gap-2 flex-wrap"><button type="button" class="btn btn-outline-secondary" (click)="dismissed.emit()">Volver al listado</button><button type="button" class="btn btn-primary" (click)="print()"><i class="bi bi-printer me-2" aria-hidden="true"></i>Imprimir orden / Guardar PDF</button></div>
+</div>
+<article class="work-order-sheet" aria-label="Orden de trabajo imprimible">
+  <header class="work-order-header"><div><strong class="work-order-brand">Puma Energy<span>.</span></strong><p>Inversiones de la Costa</p></div><div><h2>ORDEN DE TRABAJO</h2><p class="order-number">N.º {{ order().id }}</p><app-status-badge [value]="order().estado" /></div></header>
+  <section aria-labelledby="print-equipment"><h3 id="print-equipment">Equipo e identificación</h3><dl>
+    <div><dt>Código interno</dt><dd>{{ order().equipo_codigo_interno }}</dd></div><div><dt>Equipo</dt><dd>{{ order().equipo_nombre }}</dd></div>
+    <div><dt>Área</dt><dd>{{ order().equipo_area }}</dd></div><div><dt>Estación</dt><dd>{{ order().equipo_estacion }}</dd></div>
+    <div><dt>Tipo de mantenimiento</dt><dd>{{ order().tipo === 'preventivo' ? 'Preventivo' : 'Correctivo' }}</dd></div><div><dt>Técnico responsable</dt><dd>{{ order().responsable_nombre }}</dd></div>
+    <div><dt>Fecha programada</dt><dd>{{ order().fecha_programada | utcDate }}</dd></div><div><dt>{{ order().estado === 'completado' ? 'Costo final (L)' : 'Costo registrado / estimado (L)' }}</dt><dd>{{ order().costo | decimalAmount }}</dd></div>
+  </dl></section>
+  <section aria-labelledby="print-activities"><h3 id="print-activities">Actividades / descripción</h3><p class="work-order-hint">Marcar las actividades realizadas durante la intervención.</p><ul class="work-order-checklist">@for (activity of activities(); track $index) { <li><span class="check-square" aria-hidden="true"></span><span>{{ activity }}</span></li> }</ul></section>
+  <section aria-labelledby="print-notes"><h3 id="print-notes">Observaciones{{ order().estado === 'completado' ? ' finales' : '' }}</h3><p class="work-order-notes">{{ order().observaciones || 'Sin observaciones registradas.' }}</p>
+    @if (order().fecha_realizada) { <p><strong>Fecha de realización:</strong> {{ order().fecha_realizada | utcDate }}</p> }
+  </section>
+  <div class="work-order-signatures"><div><span>Firma del técnico</span><small>{{ order().responsable_nombre }}</small></div><div><span>Firma del supervisor</span><small>Nombre y fecha</small></div></div>
+  <footer class="work-order-footer">SysMant · Control de mantenimiento · Fechas y horas en UTC<br>Las casillas y firmas de esta ficha impresa no modifican el registro digital.</footer>
+</article>

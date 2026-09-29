@@ -1,0 +1,29 @@
+<app-maintenance-dialog title="Programar mantenimiento" [wide]="true" [busy]="saving()" (dismissed)="dismissed.emit()">
+  <p class="text-body-secondary small">Registra una orden pendiente sobre un equipo operativo. Los campos con * son obligatorios.</p>
+  @if (catalogsLoading()) { <p class="small" role="status"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Consultando equipos y responsables…</p> }
+  @if (catalogIssue()) { <p class="alert alert-warning small">No se pudo obtener un catálogo completo. Puedes ingresar un ID conocido; el servidor verificará su validez.</p> }
+  <app-error-notice [error]="error()" />
+  @if (error()) { <p class="small text-body-secondary">Se conservaron tus datos. Si falló la conexión al guardar, consulta el listado antes de repetir la operación.</p> }
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate [attr.aria-busy]="saving()">
+    <div class="row g-3">
+      <div class="col-md-6"><label for="order-equipment" class="form-label">Equipo operativo *</label>
+        @if (manualEquipo()) { <input id="order-equipment" class="form-control" formControlName="id_equipo" inputmode="numeric" maxlength="20" [class.is-invalid]="invalid('id_equipo')" aria-describedby="equipment-help"> }
+        @else { <select id="order-equipment" class="form-select" formControlName="id_equipo" [class.is-invalid]="invalid('id_equipo')" aria-describedby="equipment-help"><option value="">Selecciona un equipo</option>@for (equipo of equipos(); track equipo.id) { <option [value]="equipo.id">{{ equipo.codigo_interno }} · {{ equipo.nombre }}</option> }</select> }
+        <div id="equipment-help" class="form-text">{{ invalid('id_equipo') ? 'Selecciona un equipo o ingresa un ID válido.' : 'Se verifica nuevamente su estado antes de programar.' }}</div>
+        <label class="small mt-1"><input type="checkbox" class="form-check-input me-1" [checked]="manualEquipo()" [disabled]="saving()" (change)="manualEquipo.set(!manualEquipo())">Ingresar ID de equipo</label>
+      </div>
+      <div class="col-md-6"><label for="order-technician" class="form-label">Técnico responsable *</label>
+        @if (manualTecnico()) { <input id="order-technician" class="form-control" formControlName="id_usuario_responsable" inputmode="numeric" maxlength="20" [class.is-invalid]="invalid('id_usuario_responsable')" aria-describedby="technician-help"> }
+        @else { <select id="order-technician" class="form-select" formControlName="id_usuario_responsable" [class.is-invalid]="invalid('id_usuario_responsable')" aria-describedby="technician-help"><option value="">Selecciona un técnico conocido</option>@for (tecnico of tecnicos(); track tecnico.id) { <option [value]="tecnico.id">{{ tecnico.nombre }} · ID {{ tecnico.id }}</option> }</select> }
+        <div id="technician-help" class="form-text">{{ invalid('id_usuario_responsable') ? 'Selecciona un responsable o ingresa un ID válido.' : 'Nombres obtenidos de órdenes anteriores. El servidor confirma que el técnico siga activo.' }}</div>
+        <label class="small mt-1"><input type="checkbox" class="form-check-input me-1" [checked]="manualTecnico()" [disabled]="saving()" (change)="manualTecnico.set(!manualTecnico())">Ingresar ID de técnico</label>
+      </div>
+      <div class="col-md-6"><label for="order-type" class="form-label">Tipo de mantenimiento *</label><select id="order-type" class="form-select" formControlName="tipo"><option value="preventivo">Preventivo</option><option value="correctivo">Correctivo</option></select></div>
+      <div class="col-md-6"><label for="order-date" class="form-label">Fecha programada (UTC) *</label><input #scheduledInput id="order-date" type="datetime-local" step="1" class="form-control" formControlName="fecha_programada" [class.is-invalid]="invalid('fecha_programada')" aria-describedby="scheduled-help"><div id="scheduled-help" class="form-text">{{ invalid('fecha_programada') ? 'Ingresa una fecha y hora real desde el año 1000.' : 'La hora ingresada se interpreta en UTC, sin conversión desde la hora del dispositivo.' }}</div></div>
+      <div class="col-12"><label for="order-description" class="form-label">Descripción / actividades *</label><textarea id="order-description" class="form-control" rows="4" maxlength="16000" formControlName="descripcion" [class.is-invalid]="invalid('descripcion')" aria-describedby="description-help"></textarea><div id="description-help" class="form-text">{{ invalid('descripcion') ? 'La descripción es obligatoria, hasta 16,000 caracteres.' : 'Puedes escribir una actividad por línea para la orden impresa.' }}</div></div>
+      <div class="col-12"><label for="order-notes" class="form-label">Observaciones</label><textarea id="order-notes" class="form-control" rows="2" maxlength="16000" formControlName="observaciones" [class.is-invalid]="invalid('observaciones')"></textarea></div>
+      <div class="col-md-6"><label for="order-cost" class="form-label">Costo estimado (L)</label><input id="order-cost" class="form-control" type="text" inputmode="decimal" maxlength="32" formControlName="costo_estimado" [class.is-invalid]="invalid('costo_estimado')" aria-describedby="estimate-help"><div id="estimate-help" class="form-text">Opcional. De 0 a 9999999999.99, con punto decimal y sin separadores de miles.</div></div>
+    </div>
+    <footer class="d-flex justify-content-end gap-2 mt-4"><button type="button" class="btn btn-outline-secondary" [disabled]="saving()" (click)="dismissed.emit()">Cancelar</button><button type="submit" class="btn btn-primary" [disabled]="saving()">@if (saving()) { <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span> }Guardar programación</button></footer>
+  </form>
+</app-maintenance-dialog>

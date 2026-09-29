@@ -1,0 +1,17 @@
+<app-maintenance-dialog [title]="action() === 'iniciar' ? 'Iniciar trabajo' : 'Cerrar orden'" [busy]="busy()" (dismissed)="dismissed.emit()">
+  <p class="fw-semibold mb-1">Orden #{{ order().id }} · {{ order().equipo_codigo_interno }}</p><p class="text-body-secondary">{{ order().equipo_nombre }}</p>
+  <app-error-notice [error]="error()" />
+  @if (error()) { <p class="small">Los datos del formulario se conservaron. Si la respuesta se perdió, verifica el estado de la orden antes de reintentar.</p><button type="button" class="btn btn-sm btn-outline-secondary mb-3" [disabled]="busy()" (click)="refreshRequested.emit()">Actualizar listado y cerrar</button> }
+  @if (!allowed()) { <p class="alert alert-danger" role="alert">Esta orden no está asignada a tu usuario.</p> }
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate [attr.aria-busy]="busy()">
+    @if (action() === 'iniciar') {
+      <p>La orden pasará a «En proceso» y el equipo quedará en mantenimiento. Confirma cuando comiences el trabajo.</p>
+    } @else {
+      <div class="mb-3"><label for="completed-date" class="form-label">Fecha de realización (UTC) *</label><input #completedInput id="completed-date" type="datetime-local" step="1" class="form-control" formControlName="fecha_realizada" [class.is-invalid]="invalid('fecha_realizada')" aria-describedby="completed-date-help"><div id="completed-date-help" class="form-text">{{ invalid('fecha_realizada') ? 'La fecha debe ser real y no futura.' : 'Ingresa la hora UTC. No se convierte desde la hora del dispositivo.' }}</div></div>
+      <div class="mb-3"><label for="completed-cost" class="form-label">Costo final (L) *</label><input id="completed-cost" class="form-control" type="text" inputmode="decimal" maxlength="32" formControlName="costo_final" [class.is-invalid]="invalid('costo_final')" aria-describedby="completed-cost-help"><div id="completed-cost-help" class="form-text">{{ invalid('costo_final') ? 'Ingresa de 0 a 9999999999.99, con punto y hasta dos decimales, sin comas ni símbolos.' : 'Monto en Lempiras. Ejemplo: 1250.50. El valor 0.00 también es válido.' }}</div></div>
+      <div class="mb-3"><label for="completed-notes" class="form-label">Observaciones finales</label><textarea id="completed-notes" class="form-control" rows="4" maxlength="16000" formControlName="observaciones_cierre" [class.is-invalid]="invalid('observaciones_cierre')" aria-describedby="completed-notes-help"></textarea><div id="completed-notes-help" class="form-text">Estas observaciones reemplazan el campo de observaciones de la orden. Revisa el texto anterior antes de guardar.</div></div>
+      <p class="small text-body-secondary">La orden quedará completada. El servidor actualizará las alertas y el estado del equipo según sus demás órdenes en proceso.</p>
+    }
+    <footer class="d-flex justify-content-end gap-2 mt-4"><button type="button" autofocus class="btn btn-outline-secondary" [disabled]="busy()" (click)="dismissed.emit()">Cancelar</button><button type="submit" class="btn btn-primary" [disabled]="busy() || !allowed()">@if (busy()) { <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span> }{{ action() === 'iniciar' ? 'Confirmar inicio' : 'Completar orden' }}</button></footer>
+  </form>
+</app-maintenance-dialog>

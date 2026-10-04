@@ -7,6 +7,14 @@
     <div class="workspace-label"><i class="bi bi-buildings" aria-hidden="true"></i><span>Estación de servicio <span class="station-brand">Puma Energy</span></span></div>
   </div>
   <div class="account">
+    <a routerLink="/alertas" class="btn notification-bell" [attr.aria-label]="alertLabel()" [title]="alertLabel()">
+      <i class="bi bi-bell" aria-hidden="true"></i>
+      @if (alertas.errorResumen()) {
+        <span class="notification-count" aria-hidden="true">!</span>
+      } @else if (alertas.noLeidas(); as count) {
+        <span class="notification-count" aria-hidden="true">{{ count > 99 ? '99+' : count }}</span>
+      }
+    </a>
     <span class="avatar" aria-hidden="true">{{ initials() }}</span>
     <div class="account-text"><span class="user-name">{{ auth.currentUser()?.nombre }}</span><span class="user-role">{{ auth.roleLabel() }}</span></div>
     <span class="account-divider" aria-hidden="true"></span>

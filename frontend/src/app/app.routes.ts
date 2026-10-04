@@ -32,8 +32,8 @@ export const routes: Routes = [
         data: { roles: ['tecnico'] },
       },
       {
-        path: 'alertas', title: 'Alertas | SysMant', loadComponent: pendingModule,
-        data: { moduleTitle: 'Alertas', moduleIcon: 'bi-bell', moduleDescription: 'Aquí se mostrarán los avisos de mantenimiento de la estación.' },
+        path: 'alertas', title: 'Alertas | SysMant',
+        loadComponent: () => import('./pages/alertas/alertas.component').then((m) => m.AlertasComponent),
       },
       {
         path: 'usuarios', title: 'Usuarios | SysMant', canActivate: [roleGuard], loadComponent: pendingModule,

@@ -1,0 +1,76 @@
+<header class="sm-page-header">
+  <div><span class="page-eyebrow">CENTRO DE NOTIFICACIONES</span><h1>Alertas</h1>
+    <p>{{ auth.userRole() === 'tecnico' ? 'Avisos de las órdenes que tienes asignadas.' : 'Mantén a la vista los mantenimientos que requieren atención.' }}</p></div>
+  <button class="btn btn-outline-secondary" type="button" [disabled]="loading() || !!reading()" (click)="refresh()">
+    <i class="bi bi-arrow-clockwise me-2" aria-hidden="true"></i>Actualizar alertas</button>
+</header>
+
+<section aria-label="Resumen de alertas" class="alert-summary">
+  <article class="summary-card critical"><span class="summary-icon"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></span>
+    <div><span class="summary-label">Críticas · vencidas</span><strong>{{ service.resumen()?.criticas ?? '—' }}</strong><span class="summary-hint">Requieren atención</span></div></article>
+  <article class="summary-card preventive"><span class="summary-icon"><i class="bi bi-calendar-event" aria-hidden="true"></i></span>
+    <div><span class="summary-label">Preventivas · próximas</span><strong>{{ service.resumen()?.preventivas ?? '—' }}</strong><span class="summary-hint">Dentro de los próximos 7 días</span></div></article>
+  <article class="summary-card total"><span class="summary-icon"><i class="bi bi-bell" aria-hidden="true"></i></span>
+    <div><span class="summary-label">Total pendientes</span><strong>{{ service.noLeidas() ?? '—' }}</strong><span class="summary-hint">Alertas vigentes sin leer</span></div></article>
+</section>
+@if (service.errorResumen()) {
+  <p class="small text-body-secondary mt-3">El resumen puede estar desactualizado. Actualiza las alertas para volver a consultarlo.</p>
+  <app-error-notice [error]="service.errorResumen()" />
+}
+
+<section class="sm-panel mt-4" aria-labelledby="alerts-list-title">
+  <div class="sm-panel-heading flex-wrap gap-3"><div><h2 id="alerts-list-title" class="sm-section-title">Alertas de mantenimiento</h2>
+    <p class="small text-body-secondary mb-0 mt-1">Marcar como leída reconoce el aviso; la orden sigue abierta hasta su cierre.</p></div>
+    <button class="btn btn-outline-primary" type="button" [disabled]="!!reading() || service.noLeidas() === 0"
+      (click)="writeError.set(null); confirming.set(true)"><i class="bi bi-check2-all me-2" aria-hidden="true"></i>Marcar todas como leídas</button>
+  </div>
+  <form class="sm-filters" [formGroup]="form" (ngSubmit)="applyFilters()">
+    <div><label class="form-label" for="alert-state">Estado de lectura</label><select id="alert-state" class="form-select" formControlName="estado">
+      <option value="pendiente">Pendientes</option><option value="leida">Leídas</option><option value="todas">Todas</option></select></div>
+    <div><label class="form-label" for="alert-level">Criticidad / tipo</label><select id="alert-level" class="form-select" formControlName="criticidad">
+      <option value="">Todos los niveles</option><option value="critica">Crítica · Vencido</option><option value="preventiva">Preventiva · Próximo</option></select></div>
+    <button type="submit" class="btn btn-primary align-self-end" [disabled]="!!reading()">Aplicar filtros</button>
+  </form>
+  <div class="px-4" aria-live="polite">@if (notice()) { <p class="alert alert-success" role="status"><i class="bi bi-check-circle me-2" aria-hidden="true"></i>{{ notice() }}</p> }</div>
+  @if (!confirming()) { <div class="px-4"><app-error-notice [error]="writeError()" /></div> }
+  <div class="px-4"><app-error-notice [error]="error()" /></div>
+  @if (loading()) {
+    <div class="sm-loading" role="status"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Cargando alertas…</div>
+  } @else if (!error()) {
+    @if (rows().length) {
+      <p class="d-md-none px-3 small text-body-secondary"><i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i>Desliza la tabla para ver el mensaje y las acciones.</p>
+      <div class="table-responsive" role="region" aria-label="Listado de alertas" tabindex="0">
+        <table class="table sm-table align-middle"><caption class="visually-hidden">Alertas vigentes según los filtros. Todas las fechas se muestran en UTC.</caption>
+          <thead><tr><th scope="col">Nivel / tipo</th><th scope="col">Equipo</th><th scope="col">Programación UTC</th><th scope="col">Mensaje</th><th scope="col">Lectura</th><th scope="col">Acciones</th></tr></thead>
+          <tbody>@for (row of rows(); track row.id) {
+            <tr><td><span class="level-badge" [class.level-critical]="row.criticidad === 'critica'" [class.level-preventive]="row.criticidad === 'preventiva'">
+              <i class="bi" [class.bi-exclamation-circle]="row.tipo === 'vencido'" [class.bi-clock]="row.tipo === 'proximo'" aria-hidden="true"></i>
+              {{ row.criticidad === 'critica' ? 'Crítica' : 'Preventiva' }}</span><span class="sm-cell-secondary mt-1">{{ row.tipo === 'vencido' ? 'Vencido' : 'Próximo' }}</span></td>
+              <td><a class="sm-record-link" [routerLink]="['/equipos', row.id_equipo]">{{ row.equipo_nombre }}</a><span class="sm-code d-block">{{ row.equipo_codigo_interno }}</span><span class="sm-cell-secondary">Orden #{{ row.id_mantenimiento }}</span></td>
+              <td class="date-cell">{{ row.fecha_programada | utcDate }}</td><td class="message-cell">{{ row.mensaje }}</td>
+              <td><span class="read-state" [class.is-read]="row.estado === 'leida'">{{ row.estado === 'leida' ? 'Leída' : 'Pendiente' }}</span></td>
+              <td>@if (row.estado === 'pendiente') { <button class="btn btn-sm btn-outline-primary read-button" type="button" [disabled]="!!reading()"
+                [attr.aria-label]="'Marcar como leída: ' + row.equipo_codigo_interno" (click)="read(row)">
+                @if (reading() === row.id) { <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> } @else { <i class="bi bi-check2 me-1" aria-hidden="true"></i> } Marcar como leída</button>
+              } @else { <span class="small text-body-secondary"><i class="bi bi-check2-all me-1" aria-hidden="true"></i>Reconocida</span> }</td></tr>
+          }</tbody>
+        </table>
+      </div>
+    } @else { <div class="sm-empty"><i class="bi bi-bell-slash" aria-hidden="true"></i><h3 class="h5">No hay alertas con estos filtros</h3><p>Solo se muestran avisos de mantenimientos que continúan vigentes.</p></div> }
+    <app-pagination [pagination]="pagination()" [disabled]="!!reading()" label="Paginación de alertas" (pageChange)="changePage($event)" (limitChange)="changeLimit($event)" />
+  }
+</section>
+
+@if (canSync()) { <app-sincronizacion-panel /> }
+
+@if (confirming()) {
+  <app-maintenance-dialog title="Marcar todas como leídas" [busy]="!!reading()" (dismissed)="confirming.set(false)">
+    <p>Se reconocerán <strong>todas las alertas vigentes pendientes {{ auth.userRole() === 'tecnico' ? 'de tus órdenes asignadas' : 'de la estación' }}</strong>, incluidas las de otras páginas y las ocultas por los filtros.</p>
+    <p>Esta acción no completa los mantenimientos ni resuelve las averías.</p>
+    <app-error-notice [error]="writeError()" />
+    <div class="d-flex justify-content-end flex-wrap gap-2 mt-4">
+      <button class="btn btn-outline-secondary" type="button" autofocus [disabled]="!!reading()" (click)="confirming.set(false)">Cancelar</button>
+      <button class="btn btn-primary" type="button" [disabled]="!!reading()" (click)="readAll()">@if (reading()) { <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span> }Confirmar lectura de todas</button>
+    </div>
+  </app-maintenance-dialog>
+}

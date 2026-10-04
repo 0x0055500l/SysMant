@@ -1,0 +1,22 @@
+:host { display: block; }
+.page-eyebrow { display: block; color: var(--sm-green); font-size: .7rem; letter-spacing: .12em; font-weight: 700; margin-bottom: .5rem; }
+.alert-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
+.summary-card { display: flex; align-items: flex-start; gap: 1rem; padding: 1.5rem; background: white; border: 1px solid var(--sm-border); border-radius: .85rem; }
+.summary-icon { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; flex: 0 0 2.75rem; border-radius: .7rem; font-size: 1.25rem; background: #eaf3ee; color: var(--sm-green); }
+.critical .summary-icon { background: #fff0f1; color: #b92430; }
+.preventive .summary-icon { background: #fff4d9; color: #805508; }
+.summary-label, .summary-hint { display: block; font-size: .8rem; color: var(--sm-muted); }
+.summary-label { color: var(--sm-text); font-weight: 600; }
+.summary-card strong { display: block; font-size: 2rem; line-height: 1.4; margin: .2rem 0; }
+.level-badge { display: inline-flex; align-items: center; gap: .35rem; padding: .3rem .55rem; border-radius: .4rem; font-size: .75rem; font-weight: 650; white-space: nowrap; }
+.sm-table { min-width: 64rem; }
+.sm-table td:nth-child(2) { min-width: 11rem; }
+.level-critical { color: #a61e2a; background: #fff0f1; }
+.level-preventive { color: #805508; background: #fff4d9; }
+.read-state { font-size: .75rem; font-weight: 600; color: var(--sm-green); }
+.is-read { color: var(--sm-muted); font-weight: 400; }
+.date-cell { min-width: 9rem; }
+.message-cell { min-width: 14rem; max-width: 25rem; overflow-wrap: anywhere; }
+.read-button { min-width: 10rem; min-height: 2.5rem; }
+@media (max-width: 1199.98px) { .summary-card { padding: 1rem; gap: .65rem; } }
+@media (max-width: 767.98px) { .alert-summary { grid-template-columns: 1fr; gap: .75rem; } .summary-card { align-items: center; } .summary-card strong { font-size: 1.6rem; display: inline-block; margin: 0 .5rem 0 0; } .summary-hint { display: inline; } .sm-filters > div { flex-basis: 100%; } .sm-filters > button { width: 100%; } }

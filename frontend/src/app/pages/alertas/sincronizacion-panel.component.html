@@ -1,0 +1,38 @@
+<section class="sm-panel sync-panel" aria-labelledby="sync-title">
+  <header class="sm-panel-heading flex-wrap gap-3"><div class="d-flex gap-3 align-items-center"><span class="cloud-icon"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i></span>
+    <div><h2 id="sync-title" class="sm-section-title">Sincronización con Azure</h2><p class="small text-body-secondary mb-0 mt-1">Supervisión remota · Administración de la estación</p></div></div>
+    <button class="btn btn-sm btn-outline-secondary" type="button" [disabled]="loading() || sending()" (click)="refresh()"><i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>Actualizar estado</button>
+  </header>
+  <div class="p-4">
+    <app-error-notice [error]="statusError()" />
+    @if (loading()) { <p role="status"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Consultando bitácora local…</p> }
+    <p class="sync-state" [class.sync-ok]="!statusError() && state()?.habilitada && attempt()?.estado === 'exitoso'"
+      [class.sync-error]="!statusError() && state()?.habilitada && attempt()?.estado === 'error'">
+      <i class="bi bi-circle-fill" aria-hidden="true"></i>{{ statusLabel() }}</p>
+    <p class="small text-body-secondary">El estado corresponde al último intento registrado. No es una comprobación de conectividad en tiempo real.</p>
+    @if (attempt(); as packet) {
+      <dl class="sync-details">
+        <div><dt>Paquete / bitácora</dt><dd class="sm-code">#{{ packet.id }}</dd></div>
+        <div><dt>Último intento UTC</dt><dd>{{ packet.fecha_ultimo_intento | utcDate }}</dd></div>
+        <div><dt>Envío confirmado UTC</dt><dd>{{ packet.fecha_envio | utcDate }}</dd></div>
+        <div><dt>Respuesta de Azure</dt><dd>{{ packet.codigo_http === null ? 'Sin respuesta HTTP' : 'HTTP ' + packet.codigo_http }}</dd></div>
+        <div><dt>Registros procesados</dt><dd>{{ packet.registros_procesados }}</dd></div>
+        <div><dt>Intentos del paquete</dt><dd>{{ packet.intentos }}</dd></div>
+      </dl>
+      @if (safeError()) { <p class="small">Motivo registrado: <code>{{ safeError() }}</code></p> }
+      @if (packet.estado === 'error' && packet.fecha_proximo_intento) {
+        <p class="retry-notice"><i class="bi bi-clock-history me-2" aria-hidden="true"></i>El paquete quedó registrado en la bitácora para reintentar a partir de <strong>{{ packet.fecha_proximo_intento | utcDate }}</strong>.
+          El servicio programado del backend realizará el reintento cuando corresponda y esté habilitado.</p>
+      }
+    } @else if (state() && !loading()) { <p class="small text-body-secondary">Todavía no hay paquetes registrados en la bitácora de esta estación.</p> }
+    <div aria-live="polite">@if (success()) { <p class="alert alert-success" role="status"><i class="bi bi-check-circle me-2" aria-hidden="true"></i>{{ success() }}</p> }</div>
+    <app-error-notice [error]="sendError()" />
+    @if (needsRefresh()) { <p class="small">El envío pudo continuar en el servidor. Usa Actualizar estado antes de volver a enviarlo.</p> }
+    <div class="sync-footer"><p class="small text-body-secondary mb-0">La sincronización envía indicadores y alertas de la estación al servicio remoto.</p>
+      <button class="btn btn-primary" type="button" [disabled]="sending() || loading() || needsRefresh() || !state()?.habilitada || !!statusError()" (click)="force()">
+        @if (sending()) { <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Enviando a Azure… }
+        @else { <i class="bi bi-cloud-arrow-up me-2" aria-hidden="true"></i>Forzar sincronización ahora }</button>
+    </div>
+    @if (sending()) { <p class="small mt-3 mb-0" role="status">Esperando respuesta del servidor. No cierres esta vista ni repitas el envío. Si se interrumpe, consulta el estado antes de reintentar.</p> }
+  </div>
+</section>

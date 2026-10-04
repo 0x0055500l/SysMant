@@ -3,6 +3,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 export interface OperationError { message: string; requestId?: string; }
 
 const messages: Record<string, string> = {
+  AZURE_UNAVAILABLE: 'Azure no confirmó el envío. Puedes seguir trabajando en el sistema local; revisa el intento registrado y su próximo reintento.',
+  AZURE_SYNC_DISABLED: 'La sincronización con Azure está deshabilitada. La estación está configurada para trabajar en modo local.',
+  JOB_BUSY: 'Ya hay una sincronización en curso. Espera y actualiza el estado antes de volver a enviarla.',
+  ALERTA_NO_ENCONTRADA: 'La alerta ya no está disponible. Actualiza el listado.',
+  ALERTA_NO_ASIGNADA: 'Solo puedes reconocer alertas de tus órdenes asignadas.',
   MANTENIMIENTO_NO_ENCONTRADO: 'La orden ya no está disponible. Actualiza el listado.',
   MANTENIMIENTO_NO_ASIGNADO: 'Solo puedes operar las órdenes que tienes asignadas.',
   MANTENIMIENTO_NO_PENDIENTE: 'La orden ya no está pendiente. Actualiza el listado antes de continuar.',

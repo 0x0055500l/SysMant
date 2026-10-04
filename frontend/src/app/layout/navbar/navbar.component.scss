@@ -12,6 +12,10 @@
 .logout-button { display: flex; gap: .5rem; align-items: center; color: var(--sm-muted); font-size: .875rem; min-height: 2.75rem; white-space: nowrap; }
 .logout-button:hover { background: #fdf0f1; color: #b92430; }
 .menu-button { display: none; }
+.notification-bell { position: relative; display: grid; place-items: center; min-width: 2.75rem; min-height: 2.75rem; color: var(--sm-text); font-size: 1.25rem; }
+.notification-bell:hover { color: var(--sm-green); background: #eaf3ee; }
+.notification-count { position: absolute; right: 0; top: 0; min-width: 1.2rem; padding: .05rem .2rem; border-radius: 1rem; background: #b92430; color: white; font-size: .65rem; font-weight: 700; }
+@media (max-width: 399px) { .account-text .user-name { max-width: 7rem; } .account .avatar { width: 2rem; height: 2rem; } }
 @media (max-width: 1199.98px) { .logout-button > span { display: none; } }
 @media (max-width: 991.98px) { .menu-button { display: inline-flex; } .topbar { padding: .75rem 1.25rem; } }
 @media (max-width: 575.98px) {

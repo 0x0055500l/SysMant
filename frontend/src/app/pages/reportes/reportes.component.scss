@@ -1,0 +1,61 @@
+app-reportes { display: block; }
+app-reportes .report-eyebrow { display: block; color: var(--sm-green); font-size: .7rem; letter-spacing: .12em; font-weight: 700; margin-bottom: .5rem; }
+app-reportes .report-sheet { background: white; padding: 2rem; border: 1px solid var(--sm-border); border-radius: .85rem; color: #24372d; }
+app-reportes .report-institution { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem; padding-bottom: 1.25rem; border-bottom: 3px solid #c82e41; }
+app-reportes .report-brand { font-size: 1.5rem; color: #07583f; letter-spacing: .03em; }
+app-reportes .report-brand span { color: #c82e41; }
+app-reportes .report-institution h2 { font-size: 1.1rem; font-weight: 650; margin-bottom: 0; }
+app-reportes .report-institution p { font-size: .85rem; margin: .4rem 0 .75rem; }
+app-reportes .report-meta { font-size: .75rem; }
+app-reportes .report-method { font-size: .8rem; color: #53655b; line-height: 1.6; padding: 1rem 0 0; }
+app-reportes .report-section-title { font-size: 1rem; font-weight: 650; padding: .85rem 1rem; background: #eef4f0; border-left: 3px solid #07583f; margin: 1.75rem 0 1.25rem; }
+app-reportes .report-indicators { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+app-reportes .report-indicators > div { border: 1px solid #e1e7e3; padding: 1rem; border-radius: .5rem; }
+app-reportes .report-indicators span, app-reportes .report-indicators small { display: block; font-size: .8rem; color: #53655b; }
+app-reportes .report-indicators strong { display: block; font-size: 1.75rem; padding: .3rem 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+app-reportes .report-indicators .report-cost { font-size: 1.5rem; }
+app-reportes .report-note { font-size: .8rem; color: #53655b; line-height: 1.6; margin-top: .9rem; }
+app-reportes .report-table-wrap { overflow-x: auto; }
+app-reportes .report-table { width: 100%; min-width: 42rem; font-size: .8rem; border-collapse: collapse; }
+app-reportes .report-table th { text-align: left; color: #53655b; font-weight: 600; background: #f6f8f7; }
+app-reportes .report-table td, app-reportes .report-table th { padding: .8rem .7rem; vertical-align: top; border-bottom: 1px solid #e1e7e3; }
+app-reportes .report-table small { display: block; margin-top: .3rem; color: #53655b; }
+app-reportes .report-table a { color: #07583f; text-decoration: none; }
+app-reportes .report-table a:hover { text-decoration: underline; }
+app-reportes .report-money { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+app-reportes .report-table .report-overdue { color: #a61e2a; font-weight: 600; }
+app-reportes .report-order-totals { display: flex; flex-wrap: wrap; gap: .75rem; }
+app-reportes .report-order-totals span { padding: .45rem .7rem; border: 1px solid #dce7df; border-radius: .4rem; font-size: .8rem; }
+app-reportes .report-order-totals strong { margin-left: .4rem; }
+app-reportes .report-current { padding: 1.25rem; border: 1px solid #dce7df; border-radius: .5rem; margin-top: 2rem; font-size: .8rem; }
+app-reportes .report-current h3 { font-size: .9rem; font-weight: 650; }
+app-reportes .report-current p:last-child { margin: 0; }
+app-reportes .report-signatures { display: flex; gap: 2rem; margin-top: 4rem; padding-bottom: 1rem; }
+app-reportes .report-signatures > div { width: 50%; border-top: 1px solid #53655b; padding-top: .7rem; font-size: .85rem; text-align: center; }
+app-reportes .report-signatures small { display: block; font-size: .75rem; color: #53655b; margin-top: .3rem; }
+app-reportes .report-print-only { display: none; }
+@media (max-width: 767.98px) { app-reportes .report-sheet { padding: 1.1rem; } app-reportes .report-indicators { grid-template-columns: 1fr; } app-reportes .sm-filters > div { flex-basis: 100%; } app-reportes .sm-filters > button { width: 100%; } }
+@media print {
+  @page sysmant-report { size: A4; margin: 12mm; }
+  body:has(app-reportes .report-sheet) { background: white !important; page: sysmant-report; }
+  body:has(app-reportes .report-sheet) .desktop-sidebar,
+  body:has(app-reportes .report-sheet) app-navbar,
+  body:has(app-reportes .report-sheet) .workspace-footer,
+  body:has(app-reportes .report-sheet) .skip-link,
+  body:has(app-reportes .report-sheet) .mobile-navigation,
+  app-reportes .report-controls, app-reportes .report-screen-only { display: none !important; }
+  body:has(app-reportes .report-sheet) .app-shell,
+  body:has(app-reportes .report-sheet) .shell-workspace { display: block !important; min-height: 0 !important; }
+  body:has(app-reportes .report-sheet) .main-content { padding: 0 !important; }
+  app-reportes .report-sheet { page: sysmant-report; border: 0; border-radius: 0; padding: 0; margin: 0; font-size: 10pt; print-color-adjust: exact; }
+  app-reportes .report-print-only { display: block; }
+  app-reportes .report-indicators { grid-template-columns: 1fr 1fr; }
+  app-reportes .report-table { min-width: 0; table-layout: fixed; font-size: 9pt; }
+  app-reportes .report-table td { overflow-wrap: anywhere; }
+  app-reportes .report-table thead { display: table-header-group; }
+  app-reportes .report-table-wrap { overflow: visible; }
+  app-reportes .report-table tr, app-reportes .report-indicators > div, app-reportes .report-signatures, app-reportes .report-current, app-reportes .report-institution { break-inside: avoid; }
+  app-reportes .report-section-title { break-after: avoid; }
+  app-reportes .report-money { white-space: normal; }
+  app-reportes p { orphans: 3; widows: 3; }
+}

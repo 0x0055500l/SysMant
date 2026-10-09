@@ -2,8 +2,6 @@ import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
 
-const pendingModule = () => import('./pages/module-pending/module-pending.component').then((m) => m.ModulePendingComponent);
-
 export const routes: Routes = [
   {
     path: 'login', title: 'Iniciar sesión | SysMant', canActivate: [guestGuard],
@@ -36,8 +34,14 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/alertas/alertas.component').then((m) => m.AlertasComponent),
       },
       {
-        path: 'usuarios', title: 'Usuarios | SysMant', canActivate: [roleGuard], loadComponent: pendingModule,
-        data: { roles: ['admin'], moduleTitle: 'Usuarios', moduleIcon: 'bi-people', moduleDescription: 'Aquí estará la administración de accesos del personal de la estación.' },
+        path: 'usuarios', title: 'Usuarios | SysMant', canActivate: [roleGuard],
+        loadComponent: () => import('./pages/usuarios/usuarios.component').then((m) => m.UsuariosComponent),
+        data: { roles: ['admin'] },
+      },
+      {
+        path: 'reportes', title: 'Reportes | SysMant', canActivate: [roleGuard],
+        loadComponent: () => import('./pages/reportes/reportes.component').then((m) => m.ReportesComponent),
+        data: { roles: ['admin', 'supervisor'] },
       },
       {
         path: 'sin-acceso', title: 'Acceso restringido | SysMant',

@@ -1,0 +1,12 @@
+:host { display: block; }
+.user-eyebrow { display: block; color: var(--sm-green); font-size: .7rem; letter-spacing: .12em; font-weight: 700; margin-bottom: .5rem; }
+.directory-scope { display: flex; align-items: flex-start; gap: 1rem; background: #eef4f0; border: 1px solid #d5e4da; padding: 1.25rem 1.5rem; border-radius: .8rem; color: #365246; }
+.directory-scope > i { font-size: 1.3rem; }
+.directory-scope p { font-size: .85rem; line-height: 1.65; }
+.role-badge { display: inline-flex; padding: .3rem .6rem; border-radius: .4rem; background: #edf0ee; color: #526159; font-size: .75rem; font-weight: 600; white-space: nowrap; }
+.role-admin { background: #fff0f1; color: #a61e2a; }
+.role-supervisor { background: #edf3fc; color: #275184; }
+.role-tecnico { background: #e9f5ed; color: #12653e; }
+.sm-table { min-width: 48rem; }
+.sm-table td:first-child { min-width: 15rem; }
+@media (max-width: 575.98px) { .directory-scope { padding: 1rem; gap: .65rem; } }

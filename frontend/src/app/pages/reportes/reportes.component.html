@@ -1,0 +1,58 @@
+<header class="sm-page-header report-controls"><div><span class="report-eyebrow">CONTROL OPERATIVO</span><h1>Reportes</h1><p>Indicadores de mantenimiento para respaldar las decisiones de la estación.</p></div>
+  <button type="button" class="btn btn-outline-primary" [disabled]="!report() || loading()" (click)="print()"><i class="bi bi-printer me-2" aria-hidden="true"></i>Imprimir reporte / Exportar a PDF</button></header>
+<form class="sm-panel sm-filters report-controls mb-4" [formGroup]="form" (ngSubmit)="generate()" novalidate aria-label="Período del reporte">
+  <div><label class="form-label" for="report-preset">Período</label><select id="report-preset" class="form-select" formControlName="preset" (change)="selectPeriod()">
+    <option value="mes">Mes actual</option><option value="trimestre">Trimestre actual</option><option value="personalizado">Rango personalizado</option></select></div>
+  <div><label class="form-label" for="report-from">Desde (UTC) *</label><input id="report-from" type="date" class="form-control" formControlName="desde" [readOnly]="form.controls.preset.value !== 'personalizado'" [attr.aria-invalid]="form.touched && form.invalid" aria-describedby="report-period-error"></div>
+  <div><label class="form-label" for="report-to">Hasta (UTC) *</label><input id="report-to" type="date" class="form-control" formControlName="hasta" [readOnly]="form.controls.preset.value !== 'personalizado'" [attr.aria-invalid]="form.touched && form.invalid" aria-describedby="report-period-error"></div>
+  <button type="submit" class="btn btn-primary align-self-end" [disabled]="loading()">@if (loading()) { <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span> }Generar reporte</button>
+  <p id="report-period-error" class="text-danger small w-100 mb-0" aria-live="polite">@if (form.touched && form.invalid) { Selecciona fechas válidas, de inicio a fin, con un máximo de 366 días. }</p>
+</form>
+<div class="report-controls"><app-error-notice [error]="error()" /></div>
+@if (loading()) { <div class="sm-loading report-controls" role="status"><span class="spinner-border me-2" aria-hidden="true"></span>Consolidando todas las páginas de equipos y mantenimientos…</div> }
+@else if (report(); as data) {
+  <p class="visually-hidden report-controls" role="status">Reporte generado: {{ data.indicadores.programados }} órdenes en el período.</p>
+  <article class="report-sheet" aria-labelledby="report-title">
+    <header class="report-institution"><div><strong class="report-brand">PUMA <span>ENERGY</span></strong><p>Inversiones de la Costa</p><h2 id="report-title">Reporte operativo de mantenimiento</h2></div>
+      <div class="report-meta"><p><strong>Período UTC</strong><br>{{ data.periodo.desde }} al {{ data.periodo.hasta }}</p><p><strong>Emisión UTC</strong><br>{{ data.generado_en | utcDate }}</p><span>SysMant · Control de mantenimiento</span></div></header>
+    <p class="report-method">Base del reporte: órdenes con fecha programada dentro del período, incluyendo ambos días. Se utiliza su estado al consultar; los cierres pueden haber ocurrido fuera del período. Los importes incluyen únicamente esas órdenes completadas. Este reporte no representa un cierre contable ni una reconstrucción histórica de estados.</p>
+
+    <section aria-labelledby="executive-title"><h3 id="executive-title" class="report-section-title">01 / Ejecutivo de mantenimiento</h3>
+      <div class="report-indicators">
+        <div><span>Órdenes programadas</span><strong data-testid="report-programados">{{ data.indicadores.programados }}</strong><small>Por fecha programada UTC</small></div>
+        <div><span>Órdenes completadas</span><strong data-testid="report-completados">{{ data.indicadores.completados }}</strong><small>Estado actual de esas órdenes</small></div>
+        <div><span>Costo de órdenes completadas</span><strong class="report-cost" data-testid="report-costo">L {{ data.indicadores.costo_completados | decimalAmount }}</strong><small>Estimaciones de órdenes abiertas excluidas</small></div>
+        <div><span>Cumplimiento preventivo</span><strong data-testid="report-cumplimiento">{{ data.indicadores.cumplimiento_preventivo === null ? 'No aplica' : data.indicadores.cumplimiento_preventivo + '%' }}</strong><small>{{ data.indicadores.preventivos_completados }} de {{ data.indicadores.preventivos }} preventivos completados</small></div>
+      </div>
+      <p class="report-note">El cumplimiento mide preventivos completados / preventivos programados; no mide puntualidad. Correctivos del período: <strong>{{ data.indicadores.correctivos }}</strong>.</p>
+    </section>
+    <section aria-labelledby="failures-title"><h3 id="failures-title" class="report-section-title">02 / Incidencias por equipo</h3>
+      <p class="report-note">Se considera una incidencia por orden correctiva. Se muestran los primeros {{ data.fallas.slice(0, 20).length }} de {{ data.fallas.length }} equipos con mayor frecuencia; los indicadores incluyen todas las órdenes del período.</p>
+      @if (data.fallas.length) {
+        <div class="report-table-wrap" role="region" aria-label="Incidencias por equipo" tabindex="0"><table class="table report-table"><caption class="visually-hidden">Hasta 20 equipos ordenados por cantidad de correctivos.</caption>
+          <thead><tr><th scope="col">Equipo / ubicación</th><th scope="col">Correctivos</th><th scope="col">Completados</th><th scope="col">Costo completados (L)</th></tr></thead><tbody>
+            @for (item of data.fallas.slice(0, 20); track item.id_equipo) { <tr><td><a [routerLink]="['/equipos', item.id_equipo]">{{ item.codigo }} · {{ item.nombre }}</a><small>{{ item.estacion }} / {{ item.area }}</small></td><td>{{ item.correctivos }}</td><td>{{ item.completados }}</td><td class="report-money">{{ item.costo_completados | decimalAmount }}</td></tr> }
+          </tbody></table></div>
+      } @else { <p class="report-note">No hay correctivos programados en el período seleccionado.</p> }
+    </section>
+    <section aria-labelledby="pending-title"><h3 id="pending-title" class="report-section-title">03 / Órdenes pendientes y urgentes</h3>
+      <div class="report-order-totals"><span>Pendientes <strong>{{ data.indicadores.pendientes }}</strong></span><span>En proceso <strong>{{ data.indicadores.en_proceso }}</strong></span><span>Vencidas <strong>{{ data.indicadores.vencidas }}</strong></span><span>Próximas (7 días) <strong>{{ data.indicadores.proximas }}</strong></span></div>
+      <p class="report-note">Órdenes abiertas del período. La urgencia se calcula frente a la fecha de emisión UTC; vencida si es anterior, próxima si vence dentro de los siguientes siete días.</p>
+      @if (data.abiertas.length) {
+        <div class="report-screen-only"><div class="report-table-wrap" role="region" aria-label="Órdenes abiertas del período" tabindex="0"><table class="table report-table">
+          <thead><tr><th scope="col">Orden / equipo</th><th scope="col">Programación UTC</th><th scope="col">Responsable</th><th scope="col">Estado / urgencia</th></tr></thead><tbody>
+          @for (order of visibleOrders(); track order.id) { <tr><td><span class="sm-code">#{{ order.id }}</span><small>{{ order.equipo_codigo_interno }} · {{ order.equipo_nombre }}</small></td><td>{{ order.fecha_programada | utcDate }}</td><td>{{ order.responsable_nombre }}</td><td>{{ order.estado === 'en_proceso' ? 'En proceso' : 'Pendiente' }}<small [class.report-overdue]="order.urgencia === 'vencida'">{{ order.urgencia === 'vencida' ? 'Vencida' : order.urgencia === 'proxima' ? 'Próxima' : 'Programada' }}</small></td></tr> }
+          </tbody></table></div><app-pagination [pagination]="pagination()" [showLimit]="false" label="Paginación de órdenes del reporte" (pageChange)="page.set($event)" /></div>
+        <div class="report-print-only"><p class="report-note">Detalle impreso: {{ data.abiertas.slice(0, 50).length }} de {{ data.abiertas.length }} órdenes abiertas, por fecha programada ascendente. El listado completo está disponible en la vista de pantalla.</p>
+          <table class="report-table"><thead><tr><th scope="col">Orden / equipo</th><th scope="col">Programación UTC</th><th scope="col">Responsable</th><th scope="col">Estado / urgencia</th></tr></thead><tbody>
+          @for (order of data.abiertas.slice(0, 50); track order.id) { <tr><td>#{{ order.id }}<small>{{ order.equipo_codigo_interno }} · {{ order.equipo_nombre }}</small></td><td>{{ order.fecha_programada | utcDate }}</td><td>{{ order.responsable_nombre }}</td><td>{{ order.estado === 'en_proceso' ? 'En proceso' : 'Pendiente' }}<small>{{ order.urgencia === 'vencida' ? 'Vencida' : order.urgencia === 'proxima' ? 'Próxima' : 'Programada' }}</small></td></tr> }
+          </tbody></table></div>
+      } @else { <p class="report-note">No hay órdenes abiertas programadas en este período.</p> }
+    </section>
+    <aside class="report-current" aria-labelledby="current-title"><h3 id="current-title">Contexto actual de la estación</h3><p>Estas cifras corresponden al momento de consulta; no están filtradas por el período.</p>
+      <p>Equipos: <strong>{{ data.equipos_actuales.total }}</strong> · Operativos: {{ data.equipos_actuales.operativos }} · En mantenimiento: {{ data.equipos_actuales.en_mantenimiento }} · Baja: {{ data.equipos_actuales.baja }}</p>
+      <p>Alertas vigentes no leídas: <strong>{{ data.alertas_actuales.total_no_leidas }}</strong> · Críticas: {{ data.alertas_actuales.criticas }} · Preventivas: {{ data.alertas_actuales.preventivas }}</p></aside>
+    <footer><div class="report-signatures"><div>Validación técnica<small>Nombre, firma y fecha</small></div><div>Validación gerencial<small>Nombre, firma y fecha</small></div></div>
+      <p class="report-note">SysMant · Inversiones de la Costa · Fuentes consultadas: {{ data.registros_consultados.mantenimientos }} mantenimientos y {{ data.registros_consultados.equipos }} equipos. Los datos se leen mediante consultas sucesivas y pueden cambiar durante la generación.</p></footer>
+  </article>
+} @else if (!error()) { <section class="sm-empty report-controls"><i class="bi bi-file-earmark-bar-graph" aria-hidden="true"></i><h2>Genera un reporte del período</h2><p>Selecciona las fechas y consulta los datos para obtener indicadores e imprimir el resultado.</p></section> }

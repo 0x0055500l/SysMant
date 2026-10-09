@@ -3,6 +3,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 export interface OperationError { message: string; requestId?: string; }
 
 const messages: Record<string, string> = {
+  CORREO_DUPLICADO: 'Ese correo ya está registrado. Verifica la cuenta antes de crear otra.',
+  PASSWORD_DEBIL: 'Usa una contraseña de al menos 15 caracteres y como máximo 72 bytes UTF-8.',
   AZURE_UNAVAILABLE: 'Azure no confirmó el envío. Puedes seguir trabajando en el sistema local; revisa el intento registrado y su próximo reintento.',
   AZURE_SYNC_DISABLED: 'La sincronización con Azure está deshabilitada. La estación está configurada para trabajar en modo local.',
   JOB_BUSY: 'Ya hay una sincronización en curso. Espera y actualiza el estado antes de volver a enviarla.',
@@ -30,6 +32,11 @@ const messages: Record<string, string> = {
 };
 
 export function operationError(error: unknown): OperationError {
+  if (error instanceof Error && error.message === 'PHASE8_ACCESS_DENIED') return { message: 'Tu sesión no permite consultar ni administrar estos datos.' };
+  if (error instanceof Error && error.message === 'PHASE8_COLLECTION_LIMIT') return { message: 'La consulta supera el límite seguro de 5,000 registros por catálogo. No se mostrarán datos incompletos. La API actual necesita filtros adicionales para consolidar un volumen mayor.' };
+  if (error instanceof Error && error.message === 'PHASE8_COLLECTION_CHANGED') return { message: 'Los registros cambiaron durante la consulta. Genera nuevamente para obtener una colección completa.' };
+  if (error instanceof Error && error.message === 'PHASE8_INVALID_DATA') return { message: 'La respuesta contiene datos inconsistentes. No se pueden presentar resultados confiables; actualiza o consulta con administración.' };
+  if (error instanceof Error && error.message === 'REPORT_INVALID_PERIOD') return { message: 'Selecciona fechas UTC válidas y ordenadas, con un rango máximo de 366 días.' };
   if (error instanceof Error && error.message === 'ORDER_SCOPE_MISMATCH') return { message: 'La respuesta contiene órdenes fuera de tu asignación. No se mostraron esos datos. Contacta a administración.' };
   if (error instanceof Error && error.message === 'ORDER_EQUIPMENT_UNAVAILABLE') return { message: 'El equipo ya no está operativo. Actualiza el catálogo y selecciona un equipo operativo.' };
   if (error instanceof Error && error.message === 'ORDER_COLLECTION_LIMIT') return { message: 'La consulta supera 5,000 registros. Acota los filtros o usa el listado sin fechas. En los selectores puedes ingresar un ID conocido.' };

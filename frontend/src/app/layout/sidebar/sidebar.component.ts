@@ -11,6 +11,7 @@ const NAVIGATION: readonly NavigationItem[] = [
   { label: 'Mantenimientos', path: '/mantenimientos', icon: 'bi-tools', roles: ['admin', 'supervisor'] },
   { label: 'Mis órdenes', path: '/mis-ordenes', icon: 'bi-clipboard-check', roles: ['tecnico'] },
   { label: 'Alertas', path: '/alertas', icon: 'bi-bell', roles: ['admin', 'supervisor', 'tecnico'] },
+  { label: 'Reportes', path: '/reportes', icon: 'bi-file-earmark-bar-graph', roles: ['admin', 'supervisor'] },
 ];
 
 @Component({

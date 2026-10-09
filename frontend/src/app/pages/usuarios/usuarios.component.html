@@ -1,0 +1,26 @@
+<header class="sm-page-header"><div><span class="user-eyebrow">ADMINISTRACIÓN DE ACCESOS</span><h1>Usuarios</h1><p>Registro de colaboradores y directorio del personal conocido.</p></div>
+  <button type="button" class="btn btn-primary" (click)="registering.set(true)"><i class="bi bi-person-plus me-2" aria-hidden="true"></i>Registrar nuevo colaborador</button></header>
+<aside class="directory-scope" aria-labelledby="directory-scope-title"><i class="bi bi-info-circle" aria-hidden="true"></i><div>
+  <h2 id="directory-scope-title" class="h6">Directorio parcial de la estación</h2>
+  <p>Incluye tu cuenta, responsables encontrados en órdenes y cuentas creadas durante esta sesión. El sistema todavía no permite consultar el padrón completo ni editar o desactivar cuentas desde esta pantalla.</p>
+  <p class="mb-0">El correo y el rol de los responsables no están disponibles en las órdenes. Las cuentas recién creadas se guardan en el servidor; su referencia en esta vista se conserva hasta recargar la pestaña o cerrar sesión.</p>
+</div></aside>
+@if (notice()) { <p class="alert alert-success mt-3" role="status">{{ notice() }}</p> }
+<section class="sm-panel mt-4" aria-labelledby="directory-title"><div class="sm-panel-heading flex-wrap gap-3"><h2 id="directory-title" class="sm-section-title">Cuentas y responsables conocidos</h2>
+  <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="loading()" (click)="load()"><i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>Actualizar directorio</button></div>
+  <div class="sm-filters"><div><label for="directory-search" class="form-label">Buscar por nombre, correo o ID</label><input id="directory-search" class="form-control" type="search" [value]="search()" (input)="searchChanged($event)"></div></div>
+  <div class="px-4"><app-error-notice [error]="error()" />@if (error()) { <p class="small">Se muestran únicamente los datos confirmados en esta sesión.</p> }</div>
+  @if (loading()) { <p class="sm-loading" role="status"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Consultando responsables de órdenes…</p> }
+  @else {
+    @if (visible().length) {
+      <div class="table-responsive" role="region" aria-label="Directorio de cuentas" tabindex="0"><table class="table sm-table align-middle"><caption class="visually-hidden">Directorio parcial: el origen distingue cuentas confirmadas de responsables de órdenes.</caption>
+        <thead><tr><th scope="col">Colaborador</th><th scope="col">Correo</th><th scope="col">Rol</th><th scope="col">Origen</th></tr></thead><tbody>
+          @for (account of visible(); track account.id) { <tr><td><strong>{{ account.nombre }}</strong><span class="sm-code d-block">ID {{ account.id }}</span></td><td>{{ account.correo ?? 'No disponible' }}</td>
+            <td><span class="role-badge" [class.role-admin]="account.rol === 'admin'" [class.role-supervisor]="account.rol === 'supervisor'" [class.role-tecnico]="account.rol === 'tecnico'">{{ account.rol ? labels[account.rol] : 'Sin confirmar' }}</span></td>
+            <td class="small">{{ account.origen === 'sesion' ? 'Cuenta conectada' : account.origen === 'registro' ? 'Registro en esta sesión' : 'Responsable de órdenes' }}</td></tr> }
+        </tbody></table></div>
+    } @else { <div class="sm-empty"><i class="bi bi-people" aria-hidden="true"></i><h3>No hay coincidencias en el directorio disponible</h3><p>Esto no indica que no existan otras cuentas en la estación.</p></div> }
+    <app-pagination [pagination]="pagination()" label="Paginación del directorio" (pageChange)="page.set($event)" (limitChange)="limit.set($event); page.set(1)" />
+  }
+</section>
+@if (registering()) { <app-registro-usuario (dismissed)="registering.set(false)" (created)="created($event)" /> }

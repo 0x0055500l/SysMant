@@ -3,10 +3,19 @@ const { mockFase8, login } = require('../fase8/fase8.fixture.cjs');
 
 async function validateHeader(page) {
   const header = page.locator('app-institutional-header');
-  await expect(header.getByRole('img', { name: 'Puma Energy, representación estilizada', exact: true })).toBeVisible();
-  await expect(header.getByRole('img', { name: 'Sello ambiental ilustrativo, sin certificación', exact: true })).toBeVisible();
+  await expect(header.getByRole('img', { name: 'Puma Energy', exact: true })).toBeVisible();
+  await expect(header.getByRole('img', { name: 'Emblema institucional de Inversiones de la Costa', exact: true })).toBeVisible();
   await expect(header).toContainText('Inversiones de la Costa');
   expect(await header.locator('image, use, script, foreignObject, [href], [xlink\\:href]').count()).toBe(0);
+  for (const [selector, asset] of [['app-puma-logo img', '/branding/puma-energy-logo.png'], ['app-environmental-seal img', '/branding/emblema-institucional.jpg']]) {
+    const img = header.locator(selector);
+    await expect.poll(() => img.evaluate((element) => element.complete && element.naturalWidth > 0)).toBe(true);
+    const source = new URL(await img.getAttribute('src'), page.url());
+    expect(source.origin).toBe(new URL(page.url()).origin);
+    expect(source.pathname).toBe(asset);
+    const ratio = await img.evaluate((element) => ({ original: element.naturalWidth / element.naturalHeight, rendered: element.width / element.height }));
+    expect(Math.abs(ratio.original - ratio.rendered)).toBeLessThan(.05);
+  }
   const left = await header.locator('app-puma-logo').boundingBox();
   const center = await header.locator('strong').boundingBox();
   const right = await header.locator('app-environmental-seal').boundingBox();
@@ -15,7 +24,7 @@ async function validateHeader(page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 }
 
-test('cabeceras SVG locales, accesibles y alineadas en orden y reporte bajo CSP', async ({ page }, info) => {
+test('cabeceras con imágenes locales, accesibles y alineadas en orden y reporte bajo CSP', async ({ page }, info) => {
   const violations = [];
   await page.addInitScript(() => document.addEventListener('securitypolicyviolation', (event) => console.error(`CSP-BITACORAS: ${event.violatedDirective}`)));
   page.on('console', (message) => { if (message.text().includes('CSP-BITACORAS:')) violations.push(message.text()); });

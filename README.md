@@ -1,147 +1,337 @@
-# SysMant · Fase 2: API REST
+# SysMant
 
-Sistema Local de Gestión y Control de Mantenimiento de Equipos con Supervisión Remota para estaciones de servicio Puma. Proyecto de graduación de Ingeniería en Computación.
+**Sistema Local de Gestión y Control de Mantenimiento de Equipos con Supervisión Remota**
 
-Backend con Node.js 24, Express 5, MySQL y pool `mysql2`. Incluye autenticación JWT, permisos por rol, gestión de equipos, programación, inicio y cierre de mantenimientos, consulta de urgentes y errores uniformes. El frontend permanece reservado para Angular, TypeScript y Bootstrap 5. La Fase 3 añade alertas automáticas y sincronización saliente; consulta su guía antes de habilitar Azure.
+SysMant reúne el inventario, las órdenes de trabajo y las bitácoras de mantenimiento de una estación de servicio. Se desarrolla como proyecto de graduación de Ingeniería en Computación, tomando como referencia el trabajo de Inversiones de la Costa en la estación Puma Diamante, La Ceiba.
 
-## Extensión Fase 3
+El personal trabaja desde una aplicación Angular conectada a una API y una base MySQL instaladas en Windows. Los registros permanecen en la estación; la sincronización saliente permite enviar indicadores y alertas críticas a un servicio remoto cuando hay conexión a Internet.
 
-La [guía completa de Fase 3](docs/api-fase3.md) documenta los seis endpoints nuevos,
-los jobs UTC, todas las variables, el contrato Azure y ejemplos PowerShell.
-La Fase 2 conserva sus rutas y reglas.
+<img src="frontend/public/branding/puma-energy-logo.png" width="220" alt="Puma Energy">
 
-Antes de usar la bitácora ampliada, ejecuta
-`database/migrations/003_fase3.sql` como administrador MySQL en el puerto 3308.
-La cuenta de la aplicación tiene permisos DML y no puede ejecutar ALTER. Esta
-migración conserva datos y estados anteriores y puede repetirse.
+## Qué permite hacer
+
+| Módulo | Funciones disponibles |
+| --- | --- |
+| Inicio | Consultar equipos operativos y en mantenimiento, órdenes urgentes, alertas y estado de sincronización. |
+| Equipos | Registrar y editar datos técnicos, filtrar el inventario, consultar el historial y dar de baja equipos conservando sus registros. |
+| Mantenimientos | Programar preventivos y correctivos, asignar un técnico, iniciar el trabajo y cerrar la orden con fecha, observaciones y costo final. |
+| Mis órdenes | Presentar al técnico sus asignaciones y los conteos de trabajos pendientes y en proceso. |
+| Alertas | Consultar avisos próximos o vencidos, filtrar por tipo y lectura, reconocerlos individualmente o en lote. |
+| Usuarios | Registrar colaboradores desde una cuenta administradora y consultar el directorio parcial disponible. |
+| Reportes | Evaluar un mes, trimestre o rango personalizado; revisar costos, cumplimiento preventivo, correctivos por equipo y órdenes abiertas. |
+| Impresión | Imprimir órdenes y reportes o guardarlos como PDF desde el navegador, con cabecera institucional y espacios para firmas. |
+| Sincronización | Enviar indicadores y alertas críticas hacia Azure, registrar los intentos y reintentar los envíos fallidos. |
+
+El repositorio incluye la semilla de las bitácoras de cisterna, residuos y planta eléctrica: tres equipos, dos técnicos, veinte registros históricos y dos órdenes preventivas propuestas. Sus costos son representativos y las convenciones de transcripción están documentadas. La carga de esos datos es opcional en una instalación nueva.
+
+## Tecnologías
+
+| Capa | Herramientas |
+| --- | --- |
+| Interfaz | Angular 22.1, TypeScript 6, componentes standalone, signals, RxJS y formularios reactivos. |
+| Presentación | Bootstrap 5.3, Bootstrap Icons y SCSS. Las imágenes, fuentes e iconos se sirven localmente. |
+| API | Node.js 24, Express 5 y JavaScript con módulos CommonJS. |
+| Datos | MySQL 8, InnoDB y `mysql2/promise` con pool de conexiones. |
+| Validación y acceso | Zod, JWT HS256, bcryptjs, Helmet, CORS y express-rate-limit. |
+| Tareas automáticas | node-cron y `fetch` nativo de Node.js. |
+| Pruebas | Node Test Runner, Vitest y Playwright con Microsoft Edge. |
+
+Las versiones resueltas están en los archivos `package-lock.json` de cada aplicación. Backend y frontend se instalan por separado.
+
+## Antes de empezar
+
+Para desarrollo y ejecución local se necesita:
+
+- Windows 10 u 11 y PowerShell.
+- Node.js **24.15 o posterior dentro de la serie 24**, con npm 9 o superior.
+- MySQL **8.0.16 o superior dentro de la serie 8**. Se ha probado con MySQL 8.0.36; las restricciones `CHECK` deben estar habilitadas.
+- Git para descargar y actualizar el repositorio.
+- Un navegador actual. Las pruebas E2E utilizan Microsoft Edge instalado en Windows.
+
+No se requiere Angular CLI global. Los comandos utilizan `npm.cmd` para evitar las restricciones que puede tener `npm.ps1` en PowerShell.
+
+| Servicio | Dirección o puerto local |
+| --- | --- |
+| Aplicación web | `http://localhost:4200` |
+| API | `http://127.0.0.1:3000/api` |
+| MySQL | `127.0.0.1:3308` |
+| Base de datos | `sysmant` |
+
+El puerto 3308 pertenece al motor de datos; no forma parte de las URL de la API. Los ejemplos siguientes usan `D:\proyect` como carpeta del repositorio.
+
+## Instalación en Windows
+
+### 1. Descargar el proyecto
+
+Si ya tienes una copia local, continúa con la instalación de dependencias.
 
 ```powershell
-Set-Location -LiteralPath 'D:\proyect\backend'
-npm.cmd run env:setup
-npm.cmd run alerts:generate
-npm.cmd run dev
+git clone https://github.com/0x0055500l/SysMant.git D:\proyect
+Set-Location -LiteralPath 'D:\proyect'
 ```
 
-`env:setup` preserva las claves existentes y agrega sólo las ausentes. Azure queda
-desactivado por defecto; habilítalo sólo con URL HTTPS y clave de servicio
-configuradas. El generador puede usarse independientemente de Azure. Los jobs
-arrancan con el servidor, ejecutan una pasada inicial y se detienen al cerrar.
+### 2. Crear la base y la cuenta de conexión
 
-`npm.cmd run test:integration` ahora comprueba las fases 2 y 3 en MySQL temporal.
-Incluye migración repetible, preservación de registros legados, alertas sin
-duplicados, permisos, lotes, idempotencia, error HTTP, timeout y desconexión.
-`npm.cmd run azure:mock` inicia el receptor local de demostración descrito en la
-guía; no despliega el receptor de producción en el VPS.
-
-## Ejecutar en Windows
-
-La configuración local utiliza **MySQL en el puerto 3308** y la **API HTTP en el puerto 3000**. Se conserva tu contraseña y los valores `DB_*` de `backend/.env`; la clave JWT se genera localmente sin imprimirla.
-
-Si el servicio MySQL está detenido, abre PowerShell **como administrador**:
+Durante la instalación de MySQL, configura el servicio para escuchar en el puerto **3308**. Si necesitas iniciarlo, abre PowerShell como administrador:
 
 ```powershell
+Get-Service -Name '*MySQL*'
 Start-Service -Name MySQL80
-Get-Service -Name MySQL80
 ```
 
-En PowerShell normal:
+`MySQL80` es el nombre habitual de esta instalación; utiliza el nombre que muestre tu equipo. Para los siguientes pasos basta una terminal normal.
+
+Abre el cliente de MySQL. Ajusta la ruta del ejecutable si instalaste otra versión:
+
+```powershell
+& 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe' --default-character-set=utf8mb4 -h 127.0.0.1 -P 3308 -u root -p
+```
+
+Dentro de `mysql>`, ejecuta:
+
+```sql
+SOURCE D:/proyect/database/sysmant.sql;
+SOURCE D:/proyect/database/migrations/003_fase3.sql;
+
+CREATE USER IF NOT EXISTS 'sysmant_app'@'127.0.0.1'
+    IDENTIFIED BY 'REEMPLAZAR_CON_UNA_CLAVE_PROPIA';
+GRANT SELECT, INSERT, UPDATE, DELETE
+    ON sysmant.* TO 'sysmant_app'@'127.0.0.1';
+
+USE sysmant;
+SHOW TABLES;
+EXIT;
+```
+
+Sustituye la contraseña de ejemplo antes de ejecutar `CREATE USER`. Esa será la contraseña de conexión en `DB_PASSWORD`, no la del administrador de la aplicación.
+
+El primer script crea las cinco tablas y datos de demostración. El segundo actualiza la bitácora requerida por la sincronización. La creación del esquema y las migraciones se ejecutan con una cuenta administradora de MySQL; la aplicación utiliza la cuenta de datos con los permisos indicados.
+
+En una base ya utilizada, haz un respaldo antes de ejecutar scripts. Las semillas conservan las cuentas existentes, y `CREATE USER IF NOT EXISTS` tampoco cambia una contraseña anterior. `CREATE TABLE IF NOT EXISTS` no sustituye una migración de tablas.
+
+### 3. Preparar el backend
 
 ```powershell
 Set-Location -LiteralPath 'D:\proyect\backend'
 npm.cmd ci
 npm.cmd run env:setup
+notepad.exe .env
+```
+
+`env:setup` crea `.env` a partir del ejemplo si falta, genera la clave JWT y un identificador de estación, y agrega las opciones ausentes. Conserva las variables `DB_*` y una clave JWT ya configurada.
+
+Revisa estos valores en `backend/.env`:
+
+```dotenv
+DB_HOST=127.0.0.1
+DB_PORT=3308
+DB_NAME=sysmant
+DB_USER=sysmant_app
+DB_PASSWORD="LA_CLAVE_MYSQL_QUE_CONFIGURASTE"
+
+HOST=127.0.0.1
+PORT=3000
+CORS_ORIGINS=http://localhost:4200,http://127.0.0.1:4200
+AZURE_SYNC_ENABLED=false
+```
+
+Conserva el `JWT_SECRET` generado y el resto de las opciones del archivo. Si ya había configuración local, edita únicamente los valores que necesites; copiar el ejemplo completo encima reemplazaría las credenciales guardadas.
+
+Comprueba la conexión y arranca la API:
+
+```powershell
 npm.cmd run db:check
 npm.cmd run dev
 ```
 
-La API estará en `http://127.0.0.1:3000/api`. Para ejecutar sin nodemon usa `npm.cmd start`. Detén el proceso con `Ctrl+C`; las solicitudes activas terminan y luego se cierra el pool. El servidor comprueba MySQL antes de aceptar solicitudes.
+El servidor comprueba MySQL antes de aceptar solicitudes. Para ejecutar sin recarga automática utiliza `npm.cmd start`.
 
-Desde otra ventana:
+### 4. Preparar el frontend
+
+En otra ventana de PowerShell:
+
+```powershell
+Set-Location -LiteralPath 'D:\proyect\frontend'
+npm.cmd ci
+npm.cmd start
+```
+
+Abre **http://localhost:4200**. Mantén las dos terminales abiertas; `Ctrl+C` detiene cada proceso.
+
+La dirección de la API está definida en `frontend/src/environments/`. Tanto desarrollo como compilación utilizan actualmente `http://127.0.0.1:3000/api`.
+
+### 5. Comprobar el primer acceso
 
 ```powershell
 Invoke-RestMethod -Method Get -Uri 'http://127.0.0.1:3000/api/health'
 ```
 
-Debe devolver `data.status = ok`. El puerto 3308 pertenece a MySQL; no se utiliza en las URL HTTP.
+La respuesta debe contener `data.status = ok`. Después inicia sesión desde el navegador.
 
-La [colección completa de endpoints](docs/api-fase2.md) contiene los contratos JSON, permisos y un flujo ejecutable con PowerShell 5.1/7: login, registro del técnico, creación/consulta/actualización del equipo, programación e inicio de orden, urgentes, cierre y baja lógica. Los JSON también pueden usarse en Postman o Thunder Client.
+Una base recién creada incluye esta cuenta **de demostración**:
 
-## Arquitectura y archivos
-
-El flujo es `routes → middlewares → controllers → services → repositories → MySQL`. Los controladores manejan HTTP, los servicios las reglas y transacciones, y los repositorios las consultas parametrizadas.
-
-| Carpeta o archivo | Contenido |
+| Campo | Valor inicial |
 | --- | --- |
-| `database/sysmant.sql` | DDL de cinco tablas y semillas de fase 1; esta API no requiere migración. |
-| `backend/src/app.js` | Express, CORS, límites, montaje `/api` y errores globales. |
-| `backend/src/server.js` | Inicio del servidor y cierre de conexiones. |
-| `backend/src/config` | `db.js` (pool) y `env.js` (configuración API validada). |
-| `backend/src/routes` | `auth.routes.js`, `equipos.routes.js`, `mantenimientos.routes.js`. |
-| `backend/src/controllers` | `auth.controller.js`, `equipos.controller.js`, `mantenimientos.controller.js`. |
-| `backend/src/services` | `auth.service.js`, `equipos.service.js`, `mantenimientos.service.js`. |
-| `backend/src/repositories` | `usuarios.repository.js`, `equipos.repository.js`, `mantenimientos.repository.js`. |
-| `backend/src/middlewares` | Autenticación, validación, seguridad y manejo de errores. |
-| `backend/src/validators` | Esquemas Zod para autenticación, equipos, órdenes y campos comunes. |
-| `backend/src/utils/app-error.js` | Errores de aplicación con código HTTP. |
-| `backend/scripts` | Conexión, configuración de entorno y ejecución de integración aislada. |
-| `backend/test` | Pruebas de validación y API con MySQL real. |
-| `docs/api-fase2.md` | Colección de endpoints y ejemplos para Windows. |
-| `frontend` | Carpeta reservada, sin implementación. |
+| Correo | `admin@sysmant.local` |
+| Contraseña | `SysMant2026!Cambiar` |
 
-## Permisos y reglas
+Estas credenciales son públicas y corresponden únicamente a la semilla inicial. Si la cuenta ya existía, conserva su contraseña actual. Antes de utilizar la instalación con acceso real, sustituye la contraseña de demostración mediante mantenimiento de la cuenta en MySQL, usando un hash bcrypt de costo 12. La interfaz actual permite registrar cuentas, pero todavía no ofrece cambio de contraseña.
 
-| Operación | Admin | Supervisor/jefe | Técnico |
+Desde el administrador puedes registrar técnicos y supervisores. La sesión permanece al cerrar y abrir una pestaña hasta que venza el token o se cierre sesión. Usa el mismo origen `http://localhost:4200`: cambiar a `127.0.0.1:4200` abre otro almacenamiento del navegador.
+
+## Carga de las bitácoras de Puma Diamante
+
+La base de datos local no viaja con Git. Para incorporar las bitácoras en otra instalación, sigue la [guía de importación y verificación](frontend/docs/bitacoras-diamante.md). Incluye respaldo, revisión de identidades, ejecución transaccional y comprobación de alertas.
+
+El preparador se ejecuta desde la raíz:
+
+```powershell
+Set-Location -LiteralPath 'D:\proyect'
+node database/seeds/preparar-bitacoras.cjs
+```
+
+Genera un SQL preparado y contraseñas aleatorias para los dos técnicos dentro de `database/data/bitacoras-002/`, carpeta excluida de Git. Reutiliza los archivos si ya fueron preparados: el programa rechaza sobrescribirlos. No ejecutes la semilla versionada sola, porque necesita los hashes que suministra el preparador.
+
+La importación resuelve relaciones por correo y código de equipo y usa marcadores por fila para evitar duplicados. Las dos fechas futuras se calculan desde la primera importación; repetirla no desplaza fechas ni reabre trabajos cerrados.
+
+## Organización del repositorio
+
+```text
+SysMant/
+├── backend/
+│   ├── src/
+│   │   ├── config/          Conexión y configuración validada
+│   │   ├── routes/          Endpoints y permisos de entrada
+│   │   ├── middlewares/     Autenticación, validación y errores
+│   │   ├── controllers/     Recepción y respuesta HTTP
+│   │   ├── services/        Reglas de negocio y transacciones
+│   │   ├── repositories/    Acceso parametrizado a MySQL
+│   │   ├── jobs/            Alertas y sincronización programadas
+│   │   ├── validators/      Esquemas Zod
+│   │   ├── utils/           Errores y bloqueos compartidos
+│   │   ├── app.js           Configuración de Express
+│   │   └── server.js        Arranque y cierre del proceso
+│   ├── scripts/             Configuración, diagnóstico y pruebas
+│   ├── test/                Pruebas del backend
+│   └── .env.example         Plantilla sin secretos reales
+├── frontend/
+│   ├── public/branding/     Imágenes institucionales locales
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── core/        Modelos, servicios, sesión y guards
+│   │   │   ├── layout/      Navegación y estructura de pantalla
+│   │   │   ├── pages/       Módulos operativos
+│   │   │   ├── shared/      Componentes, formatos y cabeceras
+│   │   │   └── testing/     Pruebas E2E acumulativas
+│   │   ├── environments/   Dirección de la API
+│   │   └── styles.scss     Bootstrap y estilos del sistema
+│   ├── e2e/                Pruebas base de navegador
+│   └── docs/               Guías de interfaz y bitácoras
+├── database/
+│   ├── sysmant.sql         Esquema y datos de arranque
+│   ├── migrations/         Actualizaciones del esquema
+│   └── seeds/              Cargas adicionales y preparadores
+├── docs/                   Contratos y ejemplos de la API
+└── README.md
+```
+
+Una solicitud recorre `routes → middlewares → controllers → services → repositories → MySQL`. La interfaz consume la API mediante servicios tipados; los componentes presentan los datos y gestionan formularios y acciones.
+
+Las cinco tablas son `usuarios`, `equipos`, `mantenimientos`, `alertas` y `bitacora_sincronizacion`. Las claves foráneas conservan las relaciones entre responsables, equipos, órdenes y avisos.
+
+## Roles, permisos y reglas de trabajo
+
+| Operación | Administrador | Supervisor | Técnico |
 | --- | --- | --- | --- |
-| Registrar usuarios | Sí | No | No |
-| Consultar equipos, historial y órdenes | Sí | Sí | Sí |
-| Crear, actualizar y dar de baja equipos | Sí | Sí | No |
-| Programar órdenes | Sí | Sí | No |
-| Iniciar/completar órdenes | Cualquiera | Cualquiera | Sólo asignadas a él |
+| Consultar inventario e historial | Sí | Sí | Sí |
+| Crear, editar o dar de baja equipos | Sí | Sí | No |
+| Programar mantenimientos | Sí | Sí | No |
+| Iniciar y completar órdenes | Cualquier asignación | Cualquier asignación | Solo las asignadas a su cuenta |
+| Consultar y reconocer alertas | De toda la estación | De toda la estación | De sus órdenes |
+| Registrar colaboradores y abrir Usuarios | Sí | No | No |
+| Generar reportes | Sí | Sí | No |
+| Consultar o forzar sincronización | Sí | Sí | No |
 
-Las órdenes se asignan a técnicos activos. `PUT /api/mantenimientos/:id/iniciar` permite pasar de `pendiente` a `en_proceso` y marca el equipo `en_mantenimiento`. Crear una orden directamente en proceso también actualiza el equipo. Iniciar una orden que ya no está pendiente devuelve 409.
+Los guards y menús adaptan la interfaz al rol. El backend verifica el token y autoriza las operaciones protegidas. La pantalla Mis órdenes filtra por el técnico conectado; el listado general de mantenimientos de la API permite consultar otras asignaciones a los tres roles. El aislamiento por responsable en servidor se aplica al inicio/cierre de órdenes y al módulo de alertas.
 
-Completar la última orden en proceso devuelve el equipo a `operativo`. Las órdenes pendientes no impiden esa transición, pero sí impiden la baja lógica. Un cierre repetido devuelve 409 y conserva los datos anteriores. `DELETE /api/equipos/:id` cambia el estado a `baja`; mantiene el historial y rechaza equipos con órdenes abiertas.
+Reglas que mantiene el sistema:
 
-Las escrituras relacionadas usan transacciones y bloquean primero el equipo, después la orden. Completar también marca como leídas las alertas pendientes existentes de esa orden. La consulta de urgentes incluye órdenes sin completar vencidas y las programadas hasta siete días desde el instante actual.
+- Una orden se asigna a un técnico activo. El frontend programa trabajos sobre equipos operativos; la API rechaza equipos dados de baja.
+- Iniciar una orden pendiente la cambia a `en_proceso` y pone el equipo `en_mantenimiento`. Un segundo inicio devuelve un conflicto.
+- El cierre admite órdenes pendientes o en proceso, registra fecha y costo final y reconoce las alertas pendientes de esa orden. Un cierre repetido no reemplaza sus datos.
+- Al completar la última orden en proceso, el equipo vuelve a `operativo`. Las pendientes no impiden esa transición, pero sí impiden darlo de baja.
+- La baja de un equipo es lógica: conserva el historial y se rechaza mientras haya órdenes abiertas.
+- Las escrituras relacionadas usan transacciones y bloquean primero el equipo y después la orden para coordinar operaciones simultáneas.
+- Una alerta próxima corresponde a una orden abierta que vence en los siguientes siete días. Una vencida tiene fecha anterior al momento de consulta. Reconocerla como leída no completa el mantenimiento.
 
-## Configuración y seguridad
+El directorio de Usuarios es parcial: reúne la cuenta conectada, responsables presentes en órdenes y cuentas registradas durante la sesión. La API todavía no ofrece listado completo, edición, activación o recuperación de cuentas.
 
-`npm.cmd run env:setup` agrega sólo variables API ausentes. Genera una clave JWT de 64 bytes aleatorios si no existe o sigue siendo el marcador de ejemplo; conserva una clave ya configurada. No reemplaza tus valores `DB_*`. Nunca copies `.env.example` encima de tu `.env` existente.
+## Fechas, costos y reportes
 
-| Variable | Uso |
+Las fechas con hora entran y salen como UTC ISO 8601, por ejemplo `2026-10-15T14:00:00Z`, y se guardan como `DATETIME` UTC. La fecha de instalación utiliza `YYYY-MM-DD`. No se admite una realización futura; sí se permiten programaciones pasadas para registrar trabajos atrasados.
+
+IDs `BIGINT` e importes `DECIMAL` se intercambian como cadenas. El costo individual admite de `0.00` a `9999999999.99`, en lempiras. Los reportes suman centavos con `BigInt`, sin convertir los importes a punto flotante.
+
+El período de un reporte selecciona órdenes por su **fecha programada**, incluyendo ambos días. El costo suma únicamente las completadas de ese conjunto, y el cumplimiento preventivo mide completadas sobre programadas. No representa puntualidad ni un cierre contable histórico. Los conteos de equipos y alertas del documento corresponden al momento de consulta.
+
+La agregación recorre hasta 5.000 registros y 50 páginas por catálogo, con un rango máximo de 366 días. Las consultas paginadas no forman una lectura atómica: para un documento formal, genera nuevamente el reporte después de terminar las operaciones concurrentes.
+
+## Alertas y sincronización remota
+
+Mientras el backend está encendido, los jobs ejecutan una pasada inicial y continúan con su horario UTC. Alertas corre cada hora por defecto; la sincronización, cada treinta minutos cuando está habilitada. Los bloqueos MySQL impiden ejecutar el mismo job simultáneamente entre procesos.
+
+Para actualizar avisos sin esperar al siguiente horario:
+
+```powershell
+Set-Location -LiteralPath 'D:\proyect\backend'
+npm.cmd run alerts:generate
+```
+
+Azure permanece deshabilitado en una instalación nueva. El emisor guarda sus paquetes y resultados en la bitácora local; aplica timeout y conserva el trabajo pendiente cuando falla la red. La operación local puede continuar sin conexión a Internet mientras la API y MySQL de la estación estén disponibles.
+
+El servicio remoto debe recibir el POST, validar la estación y la clave y reconocer las claves de idempotencia. **El receptor de producción y su despliegue en Azure todavía no están incluidos.** Hay un receptor local de prueba, que se inicia con `npm.cmd run azure:mock`.
+
+### Configuración disponible
+
+La plantilla completa está en [backend/.env.example](backend/.env.example).
+
+| Variables | Uso |
 | --- | --- |
-| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Conexión MySQL existente. |
-| `DB_CONNECTION_LIMIT`, `DB_QUEUE_LIMIT`, `DB_CONNECT_TIMEOUT_MS` | Límites del pool y tiempo de conexión. |
-| `HOST`, `PORT` | Escucha HTTP; por defecto `127.0.0.1:3000`. |
-| `CORS_ORIGINS` | Orígenes exactos separados por comas; por defecto localhost y 127.0.0.1 en el puerto 4200. |
-| `JWT_SECRET` | Clave aleatoria local de al menos 32 bytes, nunca publicada. |
-| `JWT_ISSUER`, `JWT_AUDIENCE` | Emisor y audiencia verificados en los tokens. |
-| `JWT_EXPIRES_IN_SECONDS` | Vigencia: 3600 segundos por defecto, configurable entre 300 y 86400. |
+| `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` | Conexión a MySQL. Puerto local previsto: 3308. |
+| `DB_CONNECTION_LIMIT`, `DB_QUEUE_LIMIT`, `DB_CONNECT_TIMEOUT_MS` | Límites y espera del pool; valores iniciales: 10, 50 y 10000 ms. |
+| `HOST`, `PORT`, `CORS_ORIGINS` | Dirección de escucha y orígenes admitidos por la API. |
+| `JWT_SECRET` | Clave local generada por `env:setup`; mínimo validado de 32 bytes. |
+| `JWT_ISSUER`, `JWT_AUDIENCE`, `JWT_EXPIRES_IN_SECONDS` | Emisor, audiencia y duración. Vigencia inicial: 3600 segundos. |
+| `CRON_ALERTAS_SCHEDULE` | Expresión cron UTC; inicial `0 * * * *`. |
+| `AZURE_SYNC_ENABLED` | Activa el emisor; inicial `false`. |
+| `AZURE_API_URL`, `AZURE_SYNC_PATH` | Base HTTPS y ruta receptora; ruta inicial `api/sincronizacion/recibir`. |
+| `AZURE_SYNC_API_KEY` | Secreto compartido con el receptor; mínimo 32 bytes al habilitar el envío. |
+| `CRON_SYNC_SCHEDULE` | Expresión cron UTC; inicial `*/30 * * * *`. |
+| `AZURE_SYNC_TIMEOUT_MS`, `AZURE_SYNC_BATCH_SIZE` | Timeout y máximo de alertas por paquete; iniciales 10000 ms y 100. |
+| `AZURE_SYNC_ALLOW_LOCAL_HTTP` | Excepción para el simulador HTTP en loopback, solo fuera de producción; inicial `false`. |
+| `SYSMANT_STATION_ID` | UUID estable por instalación, generado por `env:setup`. |
 
-Medidas incluidas:
+Reinicia el backend después de cambiar su configuración. Conserva el identificador de estación al restaurar una instalación y utiliza uno distinto para otra estación.
 
-- JWT con HS256 explícito, emisor, audiencia y expiración; cuenta activa y rol actual consultados en cada solicitud.
-- Contraseñas nuevas de al menos 15 caracteres y hasta 72 bytes UTF-8, con bcrypt costo 12. El login conserva compatibilidad con contraseñas existentes.
-- Mensaje genérico de credenciales incorrectas y comparación bcrypt incluso si el correo no existe.
-- Límites en ventanas de 15 minutos: 20 fallos de login por IP, 10 por correo y 300 solicitudes API por IP; contadores en memoria de este proceso local.
-- Helmet, CORS explícito, respuestas sin caché, cuerpo JSON de hasta 32 KB, validación de campos conocidos e identificadores de solicitud.
-- SQL parametrizado, fechas y costos validados, respuestas sin hashes, consultas SQL ni stack de errores.
+## Medidas de seguridad incluidas
 
-Los límites de login se reinician al reiniciar el proceso. No hay refresh token ni revocación individual de sesiones en esta fase. Desactivar un usuario revoca su acceso en la siguiente solicitud; rotar `JWT_SECRET` invalida todos los tokens. Cambiar sólo la contraseña del usuario en MySQL no invalida tokens ya emitidos.
+- Contraseñas nuevas de al menos 15 caracteres y hasta 72 bytes UTF-8, almacenadas con bcrypt de costo 12. Las respuestas no incluyen sus hashes.
+- JWT con algoritmo HS256 explícito, emisor, audiencia y caducidad. En cada solicitud protegida se consulta la cuenta activa y su rol actual en MySQL.
+- Validación Zod de cuerpos, parámetros y filtros; consultas SQL parametrizadas y restricciones de integridad en la base.
+- Errores con códigos controlados e identificador de solicitud, sin exponer consultas SQL ni trazas internas.
+- Helmet, CORS con orígenes concretos, respuestas sin caché y límite de 32 KB para cuerpos JSON.
+- Límites por ventana de quince minutos: 300 solicitudes API por IP, 20 fallos de login por IP y 10 por correo. Los contadores residen en memoria del proceso.
+- CSP en el frontend, recursos locales e interceptor que adjunta el token únicamente a solicitudes destinadas a la API configurada.
+- Sesión persistente con verificación contra la API al restaurarla, vencimiento automático y cierre sincronizado entre pestañas.
+- Envíos remotos por HTTPS con clave de servicio, timeout, control de redirecciones y clave de idempotencia por estación/paquete.
 
-La escucha predeterminada es local. Si posteriormente se habilita acceso desde otras máquinas, habrá que configurar HTTPS y el acceso de red. CORS controla navegadores; JWT y los roles autorizan las operaciones. El puerto 3308 no sustituye una contraseña robusta ni permisos restringidos.
+El JWT está firmado, no cifrado: su contenido puede leerse. El navegador guarda el token y el correo en `localStorage`, accesible a JavaScript del mismo origen. No hay refresh token, cookies HttpOnly ni revocación individual de tokens. Cambiar una contraseña no invalida por sí solo un token emitido; desactivar la cuenta impide su uso en la siguiente solicitud y rotar la clave JWT invalida todas las sesiones.
 
-Las restricciones de bcrypt y las recomendaciones de autenticación están documentadas por [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html). El manejo de errores asíncronos sigue el comportamiento de [Express 5](https://expressjs.com/en/5x/guide/error-handling/).
+La configuración de arranque escucha en loopback y está pensada para una estación local. Habilitar acceso desde otras máquinas requiere configurar las direcciones de ambos componentes, HTTPS, CSP, CORS y las reglas de red correspondientes.
 
-## Fechas, dinero y paginación
+## Pruebas y compilación
 
-Las fechas con hora entran y salen en UTC, por ejemplo `2026-09-10T14:00:00Z`, sin milisegundos. Se almacenan como `DATETIME` UTC. La instalación del equipo usa `YYYY-MM-DD`. Se rechaza una fecha de cierre futura; las programaciones pasadas se admiten para registrar correctivos u órdenes vencidas.
-
-Los identificadores BIGINT y los importes DECIMAL se devuelven como cadenas para conservar precisión. El costo admite entre `0.00` y `9999999999.99`, máximo dos decimales; esta instalación asume lempiras (HNL).
-
-Las listas usan `{ data: [], pagination: { page, limit, total, totalPages } }`. El límite predeterminado es 20 y el máximo 100. El detalle de un equipo incluye `mantenimientos` y `historial_pagination`. Los errores usan `{ error: { code, message, details? }, request_id }`.
-
-## Pruebas
+Pruebas del backend sin escribir en la base de trabajo:
 
 ```powershell
 Set-Location -LiteralPath 'D:\proyect\backend'
@@ -149,44 +339,58 @@ npm.cmd test
 npm.cmd run test:integration
 ```
 
-`npm test` ejecuta la validación sin base de datos; la suite de integración aparece omitida en ese comando. `npm run test:integration` prepara MySQL real automáticamente en una instancia temporal con puerto **33307**, carpeta `D:\proyect\.tmp\fase2-mysql-data` y esquema `sysmant_test`. Al terminar, detiene esa instancia y elimina sus datos. No utiliza las credenciales de `.env` ni escribe en el servidor del puerto 3308.
+La integración prepara una instancia MySQL temporal en **33307**, comprueba autenticación, permisos, transacciones, alertas y fallos de sincronización, y la elimina al finalizar. Necesita los ejecutables de MySQL. Si están en una ruta diferente, configura `MYSQL_BIN_DIR` con su carpeta `bin`.
 
-Requiere MySQL 8.0 o 8.4 instalado. Para una ruta no habitual, establece `$env:MYSQL_BIN_DIR` con la carpeta que contiene `mysqld.exe` y `mysqladmin.exe`. La prueba se niega a sobrescribir un directorio de datos o un esquema de prueba existente, y verifica puerto y directorio antes de crear o borrar datos.
-
-Las pruebas verifican autenticación, permisos, cuentas inactivas, CORS, validación, duplicados, filtros, urgentes, inicio de órdenes, cierres concurrentes, importes exactos, resolución de alertas, baja lógica y límites de login.
-
-## Base de datos en una instalación nueva
-
-El esquema de fase 1 sigue siendo válido. En una máquina sin base configurada, instala Node.js 24 y MySQL 8.4 LTS, o utiliza MySQL 8.0.16+ para disponer de restricciones `CHECK` efectivas. Este proyecto se prueba con MySQL 8.0.36.
-
-Inicia el servicio y abre el cliente desde PowerShell normal (adapta la ruta y puerto si son distintos):
+Para interfaz, regresión completa y compilación:
 
 ```powershell
-& 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe' --default-character-set=utf8mb4 -h 127.0.0.1 -P 3308 -u root -p
+Set-Location -LiteralPath 'D:\proyect\frontend'
+npm.cmd test
+npm.cmd run test:e2e -- --config src/app/testing/bitacoras/playwright.config.cjs
+npm.cmd run build
 ```
 
-En `mysql>`, sustituye la contraseña de ejemplo por una propia:
+Las pruebas Edge usan una API simulada y no requieren escribir en MySQL. La configuración indicada reúne los casos de autenticación, equipos, órdenes, alertas, usuarios, reportes e imágenes de impresión. El comando E2E sin esa configuración ejecuta únicamente las pruebas base de `frontend/e2e/`.
 
-```sql
-SOURCE D:/proyect/database/sysmant.sql;
-CREATE USER IF NOT EXISTS 'sysmant_app'@'127.0.0.1'
-    IDENTIFIED BY 'REEMPLAZAR_CON_UNA_CLAVE_PROPIA';
-GRANT SELECT, INSERT, UPDATE, DELETE ON sysmant.* TO 'sysmant_app'@'127.0.0.1';
-USE sysmant;
-SHOW TABLES;
-SELECT COUNT(*) AS usuarios FROM usuarios;
-SELECT COUNT(*) AS equipos FROM equipos;
-EXIT;
+El build queda en `frontend/dist/sysmant/browser`. `npm.cmd start` utiliza el servidor de desarrollo de Angular; el build requiere un servidor estático con retorno a `index.html` para las rutas de la aplicación. La API y MySQL se ejecutan por separado.
+
+## Respaldo y archivos locales
+
+Guarda un respaldo antes de importar o cambiar la estructura. Este ejemplo solicita la contraseña y evita redirecciones de PowerShell que puedan alterar la codificación del SQL:
+
+```powershell
+New-Item -ItemType Directory -Force -Path 'D:\proyect\database\backups' | Out-Null
+$usuarioDb = Read-Host 'Usuario MySQL autorizado para el respaldo'
+$respaldo = 'D:\proyect\database\backups\sysmant-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '.sql'
+& 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe' --host=127.0.0.1 --port=3308 --user=$usuarioDb --password --default-character-set=utf8mb4 --single-transaction --skip-lock-tables --skip-triggers --no-tablespaces --set-gtid-purged=OFF --result-file=$respaldo sysmant
+if ($LASTEXITCODE -ne 0) { throw 'El respaldo no terminó correctamente.' }
 ```
 
-Configura esa misma contraseña MySQL en `DB_PASSWORD`. Si el usuario ya existía, `CREATE USER IF NOT EXISTS` conserva su contraseña. No se necesita `FLUSH PRIVILEGES`.
+El esquema de la aplicación utiliza tablas; este comando respalda su estructura y datos y omite triggers. Los volcados contienen información de la estación y hashes de cuentas: deben conservarse con acceso restringido.
 
-En una base nueva se crean cinco tablas, un administrador y tres equipos ficticios. El administrador semilla de **SysMant** es `admin@sysmant.local`, con contraseña de demostración `SysMant2026!Cambiar`; es distinto del usuario MySQL `sysmant_app`. Si ya cambiaste la contraseña de la cuenta, utiliza la nueva. Cambia las credenciales de demostración antes de utilizar datos reales.
+Git incluye código, scripts SQL, imágenes institucionales, documentación, plantillas de configuración y archivos de bloqueo de dependencias. Excluye `.env`, contraseñas preparadas, respaldos, datos MySQL, dependencias, compilados y resultados de pruebas. Al clonar se necesita preparar la configuración local y la base de esa máquina.
 
-Repetir el SQL conserva las semillas existentes. `CREATE TABLE IF NOT EXISTS` no actualiza la estructura de tablas existentes: los cambios futuros requerirán migraciones.
+## Si algo no arranca
 
-Ante `ECONNREFUSED`, revisa servicio/puerto; ante `ER_ACCESS_DENIED_ERROR`, revisa usuario/contraseña; ante `ER_BAD_DB_ERROR`, ejecuta el SQL.
+| Síntoma | Qué revisar |
+| --- | --- |
+| `ECONNREFUSED` al conectar MySQL | Servicio encendido y puerto 3308 en la instalación y en `.env`. |
+| `ER_ACCESS_DENIED_ERROR` | Usuario, contraseña y host de la cuenta MySQL. Es distinta del usuario de SysMant. |
+| `ER_BAD_DB_ERROR` | Existencia de `sysmant` y ejecución del SQL de instalación. |
+| `PHASE3_MIGRATION_REQUIRED` al consultar sincronización | Aplicar la migración de la bitácora con una cuenta MySQL que tenga permiso `ALTER`. |
+| `EADDRINUSE` al iniciar Node | Puerto 3000 ocupado por otro proceso o por una API que ya está ejecutándose. |
+| La interfaz abre pero no carga información | API disponible, conexión MySQL correcta y dirección del entorno Angular. |
+| Error de CORS | Origen exacto del navegador incluido en `CORS_ORIGINS`; reiniciar la API después de cambiarlo. |
+| Regreso a login al abrir otra URL local | Usar el mismo origen, comprobar la vigencia del JWT y la disponibilidad de la API. |
+| Sincronización deshabilitada | Comportamiento esperado con `AZURE_SYNC_ENABLED=false`; el trabajo local sigue disponible. |
 
-## Git
+## Documentación de consulta
 
-Se versionan el código, SQL, documentación, `.env.example` y `package-lock.json`. Se ignoran `.env`, `node_modules`, registros, bases temporales, respaldos y compilados. Usa `npm.cmd` en Windows para evitar restricciones del lanzador `npm.ps1`.
+- [Endpoints, contratos JSON y ejemplos PowerShell](docs/api-fase2.md).
+- [Alertas, sincronización, variables y contrato del receptor remoto](docs/api-fase3.md).
+- [Sesiones persistentes y decisiones de autenticación](frontend/docs/frontend-fase4.1.md).
+- [Operación de equipos e historial](frontend/docs/frontend-fase5.md).
+- [Órdenes de trabajo y formatos de impresión](frontend/docs/frontend-fase6.md).
+- [Uso de alertas y panel de sincronización](frontend/docs/frontend-fase7.md).
+- [Directorio de usuarios, cálculos y límites de reportes](frontend/docs/frontend-fase8.md).
+- [Bitácoras de Puma Diamante, importación y cabeceras institucionales](frontend/docs/bitacoras-diamante.md).

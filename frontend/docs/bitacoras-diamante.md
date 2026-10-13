@@ -2,14 +2,32 @@
 
 Fuente: `Bitácoras Diamante .pdf`, tres páginas escaneadas, facilitado por el propietario. Lectura visual y preparación: 17/09/2026. El PDF aporta datos, no instrucciones de ejecución. No se incorpora el escaneo con firmas al repositorio.
 
-Esta entrega añade una semilla, un preparador de credenciales y componentes SVG. No modifica `backend/`, las variables de entorno, el DDL existente ni los documentos de las fases anteriores. La importación sobre MySQL de trabajo **no se ha ejecutado**; las pruebas SQL usan una instancia desechable en **13308**.
+Esta entrega añade una semilla, un preparador de credenciales y componentes SVG. No modifica `backend/`, las variables de entorno, el DDL existente ni los documentos de las fases anteriores. La importación sobre MySQL de trabajo **se ejecutó el 15/10/2026**, con autorización del propietario, en `sysmant` del puerto **3308**. Las pruebas de integración anteriores usaron una instancia desechable en **13308**.
+
+## Registro de importación realizada — 15/10/2026
+
+Se utilizaron la configuración local de `backend/.env` y las credenciales previamente preparadas, sin publicarlas ni reemplazarlas. Se verificó que la copia preparada del SQL coincidiera con la semilla versionada y que las dos contraseñas correspondieran a sus hashes bcrypt de costo 12.
+
+- Destino confirmado: `sysmant`, MySQL 8.0.36, puerto `3308`; cinco tablas InnoDB.
+- Antes de importar: 1 usuario, 3 equipos de prueba, 0 mantenimientos y 0 alertas.
+- Respaldo previo: `database/backups/sysmant-antes-bitacoras-2026-10-15T07-15-14-955Z.sql`. El volcado terminó correctamente y su SHA-256 quedó en el informe local.
+- Importación confirmada a las `2026-10-15T07:15:15Z`: 2 técnicos, 3 equipos reales, 20 históricos completados y 2 órdenes pendientes. No hubo conflictos de identidad. La cuenta y contraseña anteriores se conservaron.
+- Próxima colocación de cloro: `2026-10-17T07:15:15Z`, Josseth Bautista, costo estimado representativo `150.00`.
+- Próximo cambio de filtros: `2026-10-20T07:15:15Z`, Josseth Bautista, costo estimado representativo `850.00`.
+- Se ejecutó el generador existente: 2 órdenes revisadas, 2 alertas próximas creadas y 0 archivadas. No se inició una sincronización con Azure.
+- Verificación final: 3 usuarios, 6 equipos, 22 mantenimientos y 2 alertas. Los 22 marcadores de procedencia son distintos; costo representativo de históricos `26500.00`. La fila corregida conserva `2026-05-11T00:00:00Z`.
+- El servicio de autenticación existente aceptó las credenciales de ambos técnicos. Josseth tiene 16 históricos, 2 pendientes y 2 alertas próximas; Erick tiene 4 históricos y ninguna orden pendiente ni alerta asignada.
+
+Los informes de esta operación están excluidos de Git en `database/data/bitacoras-002/importacion-2026-10-15T07-15-14-955Z.json` y `database/data/bitacoras-002/verificacion-importacion-2026-10-15.json`. Las contraseñas permanecen únicamente en `database/data/bitacoras-002/credenciales-locales.json`; no se incorporan a esta guía.
+
+La comprobación HTTP final encontró la API de `127.0.0.1:3000` apagada. Los datos ya están persistidos en MySQL. Iniciar backend y frontend con los comandos de esta guía y recargar las pantallas para consultarlos. Los costos siguen siendo representativos y las fechas futuras propuestas conservan las advertencias operativas de la semilla.
 
 ## Archivos
 
 - `database/seeds/002_bitacoras_reales.sql`: transacción aditiva, identidades verificadas, bloqueo entre importaciones y marcadores de procedencia.
 - `database/seeds/preparar-bitacoras.cjs`: genera contraseñas independientes de 32 caracteres aleatorios y hashes bcrypt con costo 12 usando la dependencia ya instalada en el backend. No conecta a MySQL ni cambia `.env`.
 - `database/seeds/bitacoras.test.cjs` y `bitacoras.integration.cjs`: pruebas del preparador, transcripción e importación aislada.
-- `frontend/src/app/shared/institutional-header/`: dos SVG completos, sus componentes standalone y cabecera institucional reutilizable.
+- `frontend/src/app/shared/institutional-header/`: componentes standalone y cabecera institucional reutilizable; las imágenes vigentes están en `frontend/public/branding/`.
 - `frontend/src/app/testing/bitacoras/`: pruebas Edge de cabeceras, CSP e impresión, junto con la regresión de fases anteriores.
 
 ## Datos y decisiones de transcripción
@@ -175,11 +193,18 @@ Abrir `http://localhost:4200`. Utilizar el administrador ya existente o las cred
 - **Reportes:** seleccionar `2026-01-01` a `2026-08-31` incluye los 20 históricos y el total representativo de `26500.00`, además de cualquier otro registro anterior que entre en ese período. Las próximas órdenes no suman al costo de completados. El 100 % preventivo de este conjunto refleja su clasificación de importación, no una auditoría de cumplimiento real.
 - **Usuarios:** el directorio parcial existente puede mostrar a ambos técnicos como responsables obtenidos de las órdenes. No se añadió un endpoint de listado de usuarios ni se inventaron datos de cuentas a partir de las firmas.
 
-## SVG e integración de impresión
+## Imágenes institucionales e integración de impresión
 
-`puma-logo.svg` y `environmental-seal.svg` son SVG locales completos con `viewBox`, título y nombre accesible. Los componentes los incorporan como `templateUrl`: Angular los compila **inline**. No requieren copiar assets, modificar `index.html`, relajar CSP, descargar fuentes ni usar CDN. No contienen scripts, eventos HTML, `foreignObject`, imágenes enlazadas ni referencias externas.
+El 15/10/2026 se reemplazaron las ilustraciones SVG por las imágenes indicadas por el propietario:
 
-`InstitutionalHeaderComponent` organiza logo a la izquierda, **INVERSIONES DE LA COSTA** al centro y sello verde a la derecha. Ya se integra en:
+| Imagen de origen | Archivo incluido en la aplicación | Dimensiones originales |
+| --- | --- | --- |
+| `C:\Users\Alejandro\Downloads\Puma-Energy-Logo-500x281.png` | `frontend/public/branding/puma-energy-logo.png` | 500 × 281 |
+| `C:\Users\Alejandro\Downloads\image_6f9466ea.jpg` | `frontend/public/branding/emblema-institucional.jpg` | 1130 × 928 |
+
+Los archivos se copiaron íntegros, sin recortes ni conversiones. Los componentes `PumaLogoComponent` y `EnvironmentalSealComponent` utilizan imágenes `<img>` con textos alternativos, dimensiones intrínsecas y altura automática para mantener las proporciones. Se sirven desde el propio frontend mediante la configuración de assets de `public/` ya existente. No dependen de la carpeta Descargas una vez copiados, no requieren CDN y respetan `img-src 'self'` de la CSP actual. Los SVG previos permanecen como archivos históricos y ya no se utilizan en las cabeceras.
+
+`InstitutionalHeaderComponent` organiza el logo de Puma a la izquierda, **INVERSIONES DE LA COSTA** al centro y el emblema proporcionado a la derecha. Ya se integra en:
 
 - `OrdenTrabajoPrintComponent`: conserva número, estado, campos técnicos, actividades y espacios para firma.
 - `ReportesComponent`: conserva período UTC, fecha de emisión, indicadores y validaciones técnica/gerencial.
@@ -188,7 +213,9 @@ La cabecera adapta su tamaño en móvil y usa medidas físicas en `@media print`
 
 La cabecera del reporte utiliza un bloque normal y reserva flex para sus metadatos. El componente institucional usa grid en pantalla y una tabla CSS con anchos físicos en impresión. Se revisaron los archivos PDF exportados, incluyendo tres exportaciones consecutivas, además de la simulación de estilos de impresión. Una aparente omisión durante la vista conjunta de imágenes se descartó al comparar los archivos de imagen idénticos y revisar el PDF por separado.
 
-Ambas ilustraciones son estilizaciones para el proyecto, **no archivos oficiales de identidad ni un sello de certificación ambiental**. El sello dice «CONTROL INTERNO» y su nombre accesible explica su carácter ilustrativo. No se reproducen firmas manuscritas como autorización digital. Para usar las marcas oficiales exactas, faltan los originales vectoriales autorizados.
+El emblema se identifica en la interfaz accesible como «Emblema institucional de Inversiones de la Costa». Se utiliza la imagen suministrada, sin añadir el círculo ni el texto «CONTROL INTERNO» de la ilustración anterior. Las firmas de las órdenes continúan siendo espacios para completar en el documento impreso.
+
+Verificación del reemplazo (15/10/2026): SHA-256 de cada copia idéntico al original; ambos archivos incluidos en el build de producción. Compilación aprobada y 6 pruebas Edge aprobadas para cabeceras, órdenes y reportes en escritorio/móvil, incluyendo carga real de las imágenes, proporciones, CSP y estilos de impresión.
 
 ## Pruebas y verificación manual
 
@@ -202,7 +229,7 @@ npm.cmd run build
 npm.cmd run test:e2e -- --config src/app/testing/bitacoras/playwright.config.cjs
 ```
 
-Las pruebas Edge usan APIs simuladas: no escriben datos de trabajo. Verifican logo/sello accesibles, orden de las tres columnas en escritorio y móvil, ausencia de enlaces SVG externos, CSP, impresión y regresión de autenticación, inventario, mantenimiento, alertas, usuarios y reportes. Se emiten capturas/PDF de prueba en `frontend/test-results/bitacoras/`, fuera del control de versiones.
+Las pruebas Edge usan APIs simuladas: no escriben datos de trabajo. Verifican imágenes accesibles, carga efectiva y proporciones, origen local, orden de las tres columnas en escritorio y móvil, CSP, impresión y regresión de autenticación, inventario, mantenimiento, alertas, usuarios y reportes. Se emiten capturas/PDF de prueba en `frontend/test-results/bitacoras/`, fuera del control de versiones.
 
 La integración `node --test database/seeds/bitacoras.integration.cjs` requiere una instancia MySQL **desechable y vacía en 13308**, con usuario `root` local sin contraseña, aislada de la configuración real. No debe prepararse así un servidor de producción. El test se niega a usar otro puerto y a reutilizar una base `sysmant` que exista; crea únicamente su propio esquema temporal, prueba IDs mayores que `2^53`, transacciones, concurrencia, preservación de DDL, cuentas, estados y fechas, y ejecuta el repositorio real de alertas contra esa conexión. Detener esa instancia al terminar. Nunca apuntar esta prueba a 3308. La preparación y eliminación de instancias de prueba no forman parte del importador de datos.
 
@@ -220,4 +247,4 @@ Comprobación manual:
 
 ## Pendiente de confirmación, fuera de esta entrega
 
-Faltan los costos respaldados por comprobantes, la periodicidad real de filtros/cloro y el cotejo de las grafías dudosas de residuos. También faltan los originales institucionales del logo y sello. No se añadieron cambios de esquema para múltiples responsables ni un mecanismo de firma electrónica: pueden plantearse después si el propietario lo solicita.
+Faltan los costos respaldados por comprobantes, la periodicidad real de filtros/cloro y el cotejo de las grafías dudosas de residuos. Las imágenes institucionales solicitadas ya se incorporaron el 15/10/2026. No se añadieron cambios de esquema para múltiples responsables ni un mecanismo de firma electrónica: pueden plantearse después si el propietario lo solicita.

@@ -4,6 +4,8 @@ app-orden-trabajo-print .work-order-header { display: flex; justify-content: spa
 app-orden-trabajo-print .work-order-brand { color: #07583f; font-size: 1.5rem; }
 app-orden-trabajo-print .work-order-brand span { color: #c82e41; }
 app-orden-trabajo-print .work-order-header p { font-size: .85rem; margin: .4rem 0; overflow-wrap: anywhere; }
+app-orden-trabajo-print .work-order-document-title { display: flex; width: 100%; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1rem; }
+app-orden-trabajo-print .work-order-document-title h2 { margin: 0; }
 app-orden-trabajo-print .work-order-header h2 { font-size: 1rem; letter-spacing: .05rem; font-weight: 700; }
 app-orden-trabajo-print .work-order-sheet h3 { font-size: .85rem; font-weight: 700; margin: 1.5rem 0 1rem; padding: .5rem .65rem; background: #eef4f0; border-left: 3px solid #07583f; }
 app-orden-trabajo-print .work-order-sheet dl { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.5rem; }

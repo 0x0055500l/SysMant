@@ -3,10 +3,11 @@ import { afterNextRender, Component, computed, ElementRef, inject, input, output
 import { Mantenimiento } from '../../../core/models/mantenimientos.models';
 import { DecimalAmountPipe, UtcDatePipe } from '../../../shared/pipes/display.pipe';
 import { StatusBadgeComponent } from '../../../shared/status-badge/status-badge.component';
+import { InstitutionalHeaderComponent } from '../../../shared/institutional-header/institutional-header.component';
 
 @Component({
   selector: 'app-orden-trabajo-print', standalone: true,
-  imports: [UtcDatePipe, DecimalAmountPipe, StatusBadgeComponent],
+  imports: [UtcDatePipe, DecimalAmountPipe, StatusBadgeComponent, InstitutionalHeaderComponent],
   templateUrl: './orden-trabajo-print.component.html', styleUrl: './orden-trabajo-print.component.scss',
   encapsulation: ViewEncapsulation.None,
 })

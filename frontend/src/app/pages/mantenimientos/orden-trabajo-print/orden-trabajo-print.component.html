@@ -3,7 +3,7 @@
   <div class="d-flex gap-2 flex-wrap"><button type="button" class="btn btn-outline-secondary" (click)="dismissed.emit()">Volver al listado</button><button type="button" class="btn btn-primary" (click)="print()"><i class="bi bi-printer me-2" aria-hidden="true"></i>Imprimir orden / Guardar PDF</button></div>
 </div>
 <article class="work-order-sheet" aria-label="Orden de trabajo imprimible">
-  <header class="work-order-header"><div><strong class="work-order-brand">Puma Energy<span>.</span></strong><p>Inversiones de la Costa</p></div><div><h2>ORDEN DE TRABAJO</h2><p class="order-number">N.º {{ order().id }}</p><app-status-badge [value]="order().estado" /></div></header>
+  <header class="work-order-header"><app-institutional-header /><div class="work-order-document-title"><h2>ORDEN DE TRABAJO</h2><p class="order-number">N.º {{ order().id }}</p><app-status-badge [value]="order().estado" /></div></header>
   <section aria-labelledby="print-equipment"><h3 id="print-equipment">Equipo e identificación</h3><dl>
     <div><dt>Código interno</dt><dd>{{ order().equipo_codigo_interno }}</dd></div><div><dt>Equipo</dt><dd>{{ order().equipo_nombre }}</dd></div>
     <div><dt>Área</dt><dd>{{ order().equipo_area }}</dd></div><div><dt>Estación</dt><dd>{{ order().equipo_estacion }}</dd></div>

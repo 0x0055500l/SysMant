@@ -12,11 +12,12 @@ import { dateOnlyValidator } from '../../core/validation/mantenimientos.validato
 import { ErrorNoticeComponent } from '../../shared/error-notice/error-notice.component';
 import { PaginationComponent } from '../../shared/pagination/pagination.component';
 import { DecimalAmountPipe, UtcDatePipe } from '../../shared/pipes/display.pipe';
+import { InstitutionalHeaderComponent } from '../../shared/institutional-header/institutional-header.component';
 
 const periodValidator: ValidatorFn = ({ value }) => validarPeriodo({ desde: value.desde, hasta: value.hasta }) ? null : { periodo: true };
 @Component({
   selector: 'app-reportes', standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ErrorNoticeComponent, PaginationComponent, DecimalAmountPipe, UtcDatePipe],
+  imports: [ReactiveFormsModule, RouterLink, ErrorNoticeComponent, PaginationComponent, DecimalAmountPipe, UtcDatePipe, InstitutionalHeaderComponent],
   templateUrl: './reportes.component.html', styleUrl: './reportes.component.scss', encapsulation: ViewEncapsulation.None,
 })
 export class ReportesComponent {

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 100" role="img" aria-label="Puma Energy, representación estilizada">
+  <title>Puma Energy — representación estilizada para SysMant</title>
+  <path fill="#006b3c" d="M25 10H182L158 65H1Z" />
+  <path fill="#e52330" d="M184 10H319L295 65H160Z" />
+  <g fill="#fff" transform="translate(25 23) skewX(-17) scale(.82 1)">
+    <path d="M0 0H24Q33 0 33 10V13Q33 24 23 24H10V33H0ZM10 8V16H21Q24 16 24 12Q24 8 21 8Z" />
+    <path d="M40 0H50V22Q50 26 56 26Q62 26 62 22V0H72V22Q72 34 56 34Q40 34 40 22Z" />
+    <path d="M80 33V0H91L101 16L111 0H122V33H112V15L101 30L90 15V33Z" />
+    <path fill-rule="evenodd" d="M129 33L141 0H158L170 33H159L157 26H141L139 33ZM144 18H154L149 5Z" />
+  </g>
+  <path fill="#fff" d="M195 27Q215 19 236 26L252 25L269 20L278 22L281 27L276 31L263 31L256 36L270 43L286 48L286 52L266 48L248 41L234 43L220 52L209 53L208 49L219 46L229 35Q210 29 195 32L182 28L180 23L184 22Z" />
+  <text x="10" y="89" fill="#173e2b" font-family="Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="12">ENERGY</text>
+</svg>

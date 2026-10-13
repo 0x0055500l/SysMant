@@ -1,0 +1,12 @@
+:host { display: block; width: 100%; }
+.institutional-heading { display: grid; grid-template-columns: minmax(0, 10rem) minmax(0, 1fr) 4.5rem; align-items: center; gap: 1.5rem; color: #173e2b; }
+strong { text-align: center; text-transform: uppercase; font-size: .95rem; letter-spacing: .04em; line-height: 1.4; overflow-wrap: anywhere; }
+@media (max-width: 575.98px) { .institutional-heading { grid-template-columns: minmax(0, 5.5rem) minmax(0, 1fr) 2.75rem; gap: .5rem; } strong { font-size: .65rem; letter-spacing: 0; } }
+@media print {
+  :host { break-inside: avoid; print-color-adjust: exact; }
+  // Anchos fisicos para las marcas y espacio flexible para el nombre institucional.
+  .institutional-heading { display: table; table-layout: fixed; width: 100%; }
+  app-puma-logo { display: table-cell; width: 42mm; vertical-align: middle; }
+  app-environmental-seal { display: table-cell; width: 17mm; vertical-align: middle; }
+  strong { display: table-cell; padding-inline: 6mm; vertical-align: middle; font-size: 11pt; letter-spacing: .03em; }
+}

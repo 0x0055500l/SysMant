@@ -13,8 +13,8 @@
 @else if (report(); as data) {
   <p class="visually-hidden report-controls" role="status">Reporte generado: {{ data.indicadores.programados }} órdenes en el período.</p>
   <article class="report-sheet" aria-labelledby="report-title">
-    <header class="report-institution"><div><strong class="report-brand">PUMA <span>ENERGY</span></strong><p>Inversiones de la Costa</p><h2 id="report-title">Reporte operativo de mantenimiento</h2></div>
-      <div class="report-meta"><p><strong>Período UTC</strong><br>{{ data.periodo.desde }} al {{ data.periodo.hasta }}</p><p><strong>Emisión UTC</strong><br>{{ data.generado_en | utcDate }}</p><span>SysMant · Control de mantenimiento</span></div></header>
+    <header class="report-institution"><app-institutional-header /><div class="report-document-info"><h2 id="report-title">Reporte operativo de mantenimiento</h2>
+      <div class="report-meta"><p><strong>Período UTC</strong><br>{{ data.periodo.desde }} al {{ data.periodo.hasta }}</p><p><strong>Emisión UTC</strong><br>{{ data.generado_en | utcDate }}</p><span>SysMant · Control de mantenimiento</span></div></div></header>
     <p class="report-method">Base del reporte: órdenes con fecha programada dentro del período, incluyendo ambos días. Se utiliza su estado al consultar; los cierres pueden haber ocurrido fuera del período. Los importes incluyen únicamente esas órdenes completadas. Este reporte no representa un cierre contable ni una reconstrucción histórica de estados.</p>
 
     <section aria-labelledby="executive-title"><h3 id="executive-title" class="report-section-title">01 / Ejecutivo de mantenimiento</h3>

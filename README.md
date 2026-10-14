@@ -22,7 +22,7 @@ El personal trabaja desde una aplicación Angular conectada a una API y una base
 | Impresión | Imprimir órdenes y reportes o guardarlos como PDF desde el navegador, con cabecera institucional y espacios para firmas. |
 | Sincronización | Enviar indicadores y alertas críticas hacia Azure, registrar los intentos y reintentar los envíos fallidos. |
 
-El repositorio incluye la semilla de las bitácoras de cisterna, residuos y planta eléctrica: tres equipos, dos técnicos, veinte registros históricos y dos órdenes preventivas propuestas. Sus costos son representativos y las convenciones de transcripción están documentadas. La carga de esos datos es opcional en una instalación nueva.
+El repositorio incluye la semilla de las bitácoras de cisterna, residuos y planta eléctrica: tres equipos, dos técnicos, veinte registros históricos y dos órdenes preventivas propuestas. Sus costos son representativos y cada orden conserva su procedencia y las convenciones de transcripción en las observaciones. La carga de esos datos es opcional en una instalación nueva.
 
 ## Tecnologías
 
@@ -181,16 +181,36 @@ Desde el administrador puedes registrar técnicos y supervisores. La sesión per
 
 ## Carga de las bitácoras de Puma Diamante
 
-La base de datos local no viaja con Git. Para incorporar las bitácoras en otra instalación, sigue la [guía de importación y verificación](frontend/docs/bitacoras-diamante.md). Incluye respaldo, revisión de identidades, ejecución transaccional y comprobación de alertas.
+La base de datos local no viaja con Git. Para incorporar las bitácoras en otra instalación, prepara primero el esquema y crea un respaldo como se explica en [Respaldo y archivos locales](#respaldo-y-archivos-locales). La semilla revisa las identidades existentes y ejecuta sus inserciones dentro de una transacción.
 
-El preparador se ejecuta desde la raíz:
+El preparador se ejecuta desde la raíz. Si ya existen sus archivos, se reutilizan:
 
 ```powershell
 Set-Location -LiteralPath 'D:\proyect'
-node database/seeds/preparar-bitacoras.cjs
+$preparado = 'D:\proyect\database\data\bitacoras-002\002_bitacoras_reales.preparado.sql'
+if (-not (Test-Path -LiteralPath $preparado)) {
+    node database/seeds/preparar-bitacoras.cjs
+    if ($LASTEXITCODE -ne 0) { throw 'No se pudo preparar la semilla.' }
+}
 ```
 
 Genera un SQL preparado y contraseñas aleatorias para los dos técnicos dentro de `database/data/bitacoras-002/`, carpeta excluida de Git. Reutiliza los archivos si ya fueron preparados: el programa rechaza sobrescribirlos. No ejecutes la semilla versionada sola, porque necesita los hashes que suministra el preparador.
+
+Importa la copia preparada con una cuenta MySQL que pueda leer e insertar en las tablas de la aplicación:
+
+```powershell
+$usuarioDb = Read-Host 'Usuario MySQL autorizado para importar'
+$resultado = & 'C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe' --host=127.0.0.1 --port=3308 --user=$usuarioDb --password --default-character-set=utf8mb4 --database=sysmant --batch --execute='source D:/proyect/database/data/bitacoras-002/002_bitacoras_reales.preparado.sql'
+$codigoSalida = $LASTEXITCODE
+$resultado
+if ($codigoSalida -ne 0) { throw 'Falló la importación; la transacción pendiente se revierte al cerrar la conexión.' }
+if (($resultado -join "`n") -match 'BLOQUEADA') { throw 'Revisar conflictos de identidad, equipo o hashes antes de continuar.' }
+
+Set-Location -LiteralPath 'D:\proyect\backend'
+npm.cmd run alerts:generate
+```
+
+No añadas `--force` al cliente MySQL: debe detenerse ante un error. En una primera carga sin coincidencias previas, el resultado es `OK` con 2 usuarios, 3 equipos, 20 históricos y 2 futuros nuevos. Las contraseñas de los técnicos quedan en el archivo privado `database/data/bitacoras-002/credenciales-locales.json`; conserva su acceso restringido.
 
 La importación resuelve relaciones por correo y código de equipo y usa marcadores por fila para evitar duplicados. Las dos fechas futuras se calculan desde la primera importación; repetirla no desplaza fechas ni reabre trabajos cerrados.
 
@@ -225,13 +245,11 @@ SysMant/
 │   │   │   └── testing/     Pruebas E2E acumulativas
 │   │   ├── environments/   Dirección de la API
 │   │   └── styles.scss     Bootstrap y estilos del sistema
-│   ├── e2e/                Pruebas base de navegador
-│   └── docs/               Guías de interfaz y bitácoras
+│   └── e2e/                Pruebas base de navegador
 ├── database/
 │   ├── sysmant.sql         Esquema y datos de arranque
 │   ├── migrations/         Actualizaciones del esquema
 │   └── seeds/              Cargas adicionales y preparadores
-├── docs/                   Contratos y ejemplos de la API
 └── README.md
 ```
 
@@ -368,7 +386,7 @@ if ($LASTEXITCODE -ne 0) { throw 'El respaldo no terminó correctamente.' }
 
 El esquema de la aplicación utiliza tablas; este comando respalda su estructura y datos y omite triggers. Los volcados contienen información de la estación y hashes de cuentas: deben conservarse con acceso restringido.
 
-Git incluye código, scripts SQL, imágenes institucionales, documentación, plantillas de configuración y archivos de bloqueo de dependencias. Excluye `.env`, contraseñas preparadas, respaldos, datos MySQL, dependencias, compilados y resultados de pruebas. Al clonar se necesita preparar la configuración local y la base de esa máquina.
+Git incluye código, scripts SQL, imágenes institucionales, README, plantillas de configuración y archivos de bloqueo de dependencias. Excluye `.env`, contraseñas preparadas, respaldos, datos MySQL, documentación de trabajo privada, dependencias, compilados y resultados de pruebas. Al clonar se necesita preparar la configuración local y la base de esa máquina.
 
 ## Si algo no arranca
 
@@ -383,14 +401,3 @@ Git incluye código, scripts SQL, imágenes institucionales, documentación, pla
 | Error de CORS | Origen exacto del navegador incluido en `CORS_ORIGINS`; reiniciar la API después de cambiarlo. |
 | Regreso a login al abrir otra URL local | Usar el mismo origen, comprobar la vigencia del JWT y la disponibilidad de la API. |
 | Sincronización deshabilitada | Comportamiento esperado con `AZURE_SYNC_ENABLED=false`; el trabajo local sigue disponible. |
-
-## Documentación de consulta
-
-- [Endpoints, contratos JSON y ejemplos PowerShell](docs/api-fase2.md).
-- [Alertas, sincronización, variables y contrato del receptor remoto](docs/api-fase3.md).
-- [Sesiones persistentes y decisiones de autenticación](frontend/docs/frontend-fase4.1.md).
-- [Operación de equipos e historial](frontend/docs/frontend-fase5.md).
-- [Órdenes de trabajo y formatos de impresión](frontend/docs/frontend-fase6.md).
-- [Uso de alertas y panel de sincronización](frontend/docs/frontend-fase7.md).
-- [Directorio de usuarios, cálculos y límites de reportes](frontend/docs/frontend-fase8.md).
-- [Bitácoras de Puma Diamante, importación y cabeceras institucionales](frontend/docs/bitacoras-diamante.md).

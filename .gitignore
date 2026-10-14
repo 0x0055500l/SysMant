@@ -35,6 +35,10 @@ backend/uploads/
 database/backups/
 database/data/
 
+# Documentacion de trabajo privada, conservada solo en el equipo local
+/docs/
+/frontend/docs/
+
 # Editores y Windows/macOS
 .idea/
 .vscode/

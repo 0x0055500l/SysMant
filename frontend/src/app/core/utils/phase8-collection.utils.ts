@@ -2,7 +2,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 import { PaginatedResponse } from '../models/equipos.models';
 import { collectPages } from './collect-pages';
 
-/** Mismo límite del módulo operativo, con errores propios para no alterar fases previas. */
+/** Pagina colecciones y traduce sus errores para usuarios y reportes. */
 export function collectPhase8<T extends { id: string }>(page: (page: number) => Observable<PaginatedResponse<T>>): Observable<T[]> {
   return collectPages(page).pipe(catchError((error: unknown) => {
     if (error instanceof Error && error.message === 'ORDER_COLLECTION_LIMIT') return throwError(() => new Error('PHASE8_COLLECTION_LIMIT'));

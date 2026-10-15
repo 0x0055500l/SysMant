@@ -22,7 +22,7 @@ export class SessionStore {
       this.window.localStorage.setItem(SESSION_KEY, serializeSession(session));
       return true;
     } catch {
-      // Si escribir falla, tampoco se conserva una sesión anterior por accidente.
+      // Elimina sesiones persistidas cuando falla la escritura del nuevo token.
       this.clear();
       return false;
     }

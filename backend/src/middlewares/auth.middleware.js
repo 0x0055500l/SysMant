@@ -64,7 +64,7 @@ async function verificarToken(req, res, next) {
     return next(noAutorizado(res));
   }
 
-  // La BD decide los permisos actuales y revoca el acceso al desactivar la cuenta.
+  // La cuenta activa y el rol se consultan en cada solicitud.
   const usuario = await usuariosRepository.buscarActivoPorId(claims.id);
   if (!usuario || !ROLES_VALIDOS.has(usuario.rol)) {
     return next(noAutorizado(res));

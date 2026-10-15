@@ -1,6 +1,6 @@
 'use strict';
 
-// Receptor de demostracion local. No es el servidor que se despliega en Azure.
+// Receptor HTTP en memoria para pruebas de sincronizacion.
 const http = require('node:http');
 const { timingSafeEqual } = require('node:crypto');
 const path = require('node:path');

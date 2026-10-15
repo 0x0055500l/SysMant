@@ -1,5 +1,5 @@
 'use strict';
-// Solo instancia desechable: NO conecta al puerto de trabajo 3308.
+// Instancia MySQL desechable en 13308.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
@@ -31,7 +31,7 @@ test('MySQL aislado: conservación, precisión, repetición, concurrencia y roll
       ALTER TABLE usuarios AUTO_INCREMENT = 9007199254740993;
       ALTER TABLE equipos AUTO_INCREMENT = 9007199254740993;
       ALTER TABLE mantenimientos AUTO_INCREMENT = 9007199254740993;`);
-    // ALTER anteriores son EXCLUSIVOS del esquema desechable para probar BIGINT.
+    // IDs de prueba superiores al limite de precision de Number.
     const beforeSchema = await Promise.all(['usuarios', 'equipos', 'mantenimientos', 'alertas'].map(async (name) => {
       const [[row]] = await connection.query(`SHOW CREATE TABLE ${name}`); return row['Create Table'].replace(/AUTO_INCREMENT=\d+ /g, '');
     }));
@@ -71,7 +71,7 @@ test('MySQL aislado: conservación, precisión, repetición, concurrencia y roll
     assert.equal(await scalar('SELECT COUNT(*) FROM mantenimientos'), '22');
     assert.equal(await scalar('SELECT COUNT(*) FROM usuarios'), '3', 'La cuenta provisional debe revertirse');
 
-    // Repositorio REAL sin editar backend ni leer .env: el pool apunta a este proceso.
+    // Inyeccion de la conexion de pruebas en el repositorio de alertas.
     const dbModule = require.resolve('../../backend/src/config/db');
     const cached = require.cache[dbModule];
     require.cache[dbModule] = { id: dbModule, filename: dbModule, loaded: true, exports: { pool: connection } };

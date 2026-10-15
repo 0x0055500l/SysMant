@@ -1,6 +1,6 @@
--- Extension aditiva de la bitacora de Fase 1. Ejecutar despues de sysmant.sql.
--- Conserva todos los valores previos del ENUM y los registros existentes.
--- El ALTER es atomico en MySQL 8 y la guarda permite repetir este archivo.
+-- Ampliacion de bitacora_sincronizacion. Requiere sysmant.sql.
+-- Mantiene los estados existentes y agrega metadatos de envio.
+-- Migracion repetible con ALTER atomico en MySQL 8.
 USE sysmant;
 SET SESSION time_zone = '+00:00';
 SET @fase3_aplicada = (

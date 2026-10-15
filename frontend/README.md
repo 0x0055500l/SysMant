@@ -2,11 +2,11 @@
 
 Interfaz Angular para el inventario, las órdenes de trabajo, las alertas y los reportes de mantenimiento de la estación. Utiliza componentes standalone, signals, RxJS, formularios reactivos, Bootstrap 5 e iconos locales.
 
-La [guía principal del repositorio](../README.md) contiene los requisitos, la preparación de MySQL, la configuración del backend, los permisos y las reglas de operación.
+La instalación completa, los permisos y la configuración del backend están en el [README principal](../README.md).
 
 ## Ejecutar en Windows
 
-Con Node.js 24.15 o posterior dentro de la serie 24, y la API ya preparada:
+Requisitos: Node.js 24.15 o posterior dentro de la serie 24 y API disponible en el puerto 3000.
 
 ```powershell
 Set-Location -LiteralPath 'D:\proyect\frontend'
@@ -14,9 +14,9 @@ npm.cmd ci
 npm.cmd start
 ```
 
-Abre `http://localhost:4200`. La API se consume en `http://127.0.0.1:3000/api`; MySQL utiliza el puerto 3308. No hace falta instalar Angular CLI globalmente.
+Aplicación: `http://localhost:4200`. API: `http://127.0.0.1:3000/api`. MySQL: puerto 3308. Angular CLI forma parte de las dependencias locales.
 
-La sesión se conserva al cerrar y abrir la pestaña mientras el JWT siga vigente. Mantén el mismo origen del navegador para reutilizar el almacenamiento local.
+La sesión persiste entre pestañas mientras el JWT siga vigente. El almacenamiento está asociado al origen del navegador.
 
 ## Verificar y compilar
 

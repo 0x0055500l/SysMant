@@ -17,7 +17,7 @@ async function main() {
   });
   try {
     const script = await fs.readFile(path.resolve(__dirname, '../../database/migrations/003_fase3.sql'), 'utf8');
-    // La conexion ya selecciono DB_NAME; no cambia a otra base hardcodeada.
+    // Ejecuta la migracion sobre DB_NAME.
     await connection.query(script.replace(/^USE sysmant;\r?\n/m, ''));
     console.log('Migracion aditiva de Fase 3 aplicada.');
   } finally { await connection.end(); }

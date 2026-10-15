@@ -23,7 +23,7 @@ function attemptFromError(value: unknown): IntentoSincronizacion | null {
     || typeof v['creado_en'] !== 'string' || !utcOrNull(v['creado_en'])
     || !utcOrNull(v['fecha_ultimo_intento']) || !utcOrNull(v['fecha_envio']) || !utcOrNull(v['fecha_proximo_intento'])
     || !(v['ultimo_error'] === null || (typeof v['ultimo_error'] === 'string' && /^AZURE_[A-Z\d_]{1,60}$/.test(v['ultimo_error'])))) return null;
-  // No conservamos el cuerpo HTTP arbitrario ni posibles campos privados añadidos por un proxy.
+  // Lista permitida de campos para los errores de sincronización.
   return {
     id: v['id'], estado: 'error', paquete_uuid: v['paquete_uuid'], intentos: v['intentos'] as number,
     registros_procesados: v['registros_procesados'] as number, codigo_http: v['codigo_http'] as number | null,
@@ -64,7 +64,7 @@ export class SincronizacionService {
 
   forzarSincronizacion() {
     if (!this.autorizado()) return throwError(() => new SincronizacionError(new HttpErrorResponse({ status: 403 })));
-    // No se reintenta un POST: un timeout no demuestra que el servidor haya cancelado el envío.
+    // El resultado de un POST con timeout es indeterminado; no se reenvía automáticamente.
     return this.http.post<ApiResponse<BitacoraSync>>(`${this.url}/forzar`, {}).pipe(timeout(45000),
       map((response) => response.data), catchError((error: unknown) => throwError(() => new SincronizacionError(error))));
   }

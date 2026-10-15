@@ -1,9 +1,9 @@
 -- SysMant: transcripcion de Bitacoras Diamante, paginas 1-3.
--- Solo INSERT condicionales: no altera DDL, cuentas, equipos u ordenes existentes.
--- Preparar primero con: node database/seeds/preparar-bitacoras.cjs
--- El preparador suministra hashes bcrypt de costo 12, sin guardar claves en Git.
--- Ejecutar en modo batch SIN --force. Ante un error, cerrar la conexion (ROLLBACK).
--- Importes REPRESENTATIVOS: no son gastos acreditados por los escaneos.
+-- Carga aditiva con INSERT condicionales.
+-- Preparacion: node database/seeds/preparar-bitacoras.cjs
+-- Requiere hashes bcrypt de costo 12 suministrados por el preparador.
+-- Ejecucion batch sin --force; un error requiere rollback o cierre de conexion.
+-- Costos representativos; el documento fuente no contiene importes.
 USE sysmant;
 SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 SET SESSION time_zone = '+00:00';
@@ -12,8 +12,8 @@ SET @seed_erick_hash = COALESCE(@seed_erick_hash, '');
 SET @seed_bloqueo = GET_LOCK('sysmant.seed.002.bitacoras', 10);
 START TRANSACTION;
 
--- Los correos son identificadores locales propuestos, no direcciones verificadas.
--- Ante una identidad o codigo reutilizado con datos distintos, no se inserta nada.
+-- Identificadores de acceso locales; no son direcciones de contacto verificadas.
+-- Cualquier conflicto de identidad o equipo bloquea la carga completa.
 SET @seed_conflictos = (
   SELECT COUNT(*) FROM usuarios
   WHERE (correo = 'josseth.bautista@sysmant.local'
@@ -58,9 +58,9 @@ WHERE @seed_permitida AND existente.id IS NULL;
 SET @seed_equipos_insertados = ROW_COUNT();
 
 -- Horas de cisterna: hora local America/Tegucigalpa (UTC-06:00) convertida a UTC.
--- Sin hora en papel: 00:00:00Z como convencion de fecha, NO hora real del trabajo.
--- El 11/05/2026 sustituye 11/5/25 por confirmacion expresa del propietario.
--- La transcripcion conserva abreviaturas y grafias; no reproduce firmas graficas.
+-- Registros sin hora: 00:00:00Z como convencion de fecha.
+-- Correccion validada: 11/05/2026 sustituye la fecha manuscrita 11/5/25.
+-- Se mantienen las abreviaturas y grafias de la transcripcion.
 SET @seed_historial = '[
   {"clave":"P1-F01","equipo":"EQ-CIST-001","fecha":"2026-01-08T21:00:00Z","descripcion":"colocacion Pastilla Cloro","tecnico":"josseth.bautista@sysmant.local","costo":"150.00","nota":"P.1 fila 1: 8/1/26, 3 PM local. Firma: Josseth B."},
   {"clave":"P1-F02","equipo":"EQ-CIST-001","fecha":"2026-02-15T16:00:00Z","descripcion":"colocacion Pastilla cloro","tecnico":"josseth.bautista@sysmant.local","costo":"150.00","nota":"P.1 fila 2: 15/2/26, 10 AM local. Firma: Josseth B."},
@@ -107,8 +107,8 @@ WHERE @seed_permitida AND NOT EXISTS (
 );
 SET @seed_historicos_insertados = ROW_COUNT();
 
--- Dos propuestas futuras relativas a la PRIMERA importacion: no son periodicidades
--- tecnicas extraidas del PDF. Repetir no cambia fechas ni reabre ordenes cerradas.
+-- Planificacion de prueba relativa a la primera importacion, sin recurrencia.
+-- Las frecuencias operativas requieren validacion de la estacion.
 SET @seed_fecha_base = UTC_TIMESTAMP();
 INSERT INTO mantenimientos (
   id_equipo, tipo, fecha_programada, descripcion, observaciones,

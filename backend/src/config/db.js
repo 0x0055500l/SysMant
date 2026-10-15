@@ -4,7 +4,7 @@ const path = require('node:path');
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
 
-// La ruta no depende de la carpeta desde la que se invoque Node.
+// Ruta de configuracion relativa al backend.
 const envResult = dotenv.config({
   path: path.resolve(__dirname, '../../.env'),
   quiet: true,
@@ -51,8 +51,7 @@ const pool = mysql.createPool({
   multipleStatements: false,
 });
 
-// timezone configura el cliente; SET configura cada sesion real de MySQL.
-// mysql2 encola esta consulta antes de las consultas de la aplicacion.
+// Inicializa cada sesion MySQL en UTC antes de procesar consultas.
 pool.on('connection', (connection) => {
   connection.query("SET SESSION time_zone = '+00:00'", (error) => {
     if (error) {

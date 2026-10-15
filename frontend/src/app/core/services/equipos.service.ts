@@ -65,7 +65,7 @@ export class EquiposService {
   }
 
   private catalogo(filtros: FiltrosEquipo): Observable<Equipo[]> {
-    // La API no ofrece búsqueda libre ni catálogo de áreas. Nunca se presenta una página parcial como el inventario completo.
+    // La búsqueda y el catálogo de áreas requieren recorrer el inventario completo.
     return defer(() => {
       let expectedTotal: number | undefined;
       return this.pagina({ ...filtros, page: 1, limit: 100 }).pipe(

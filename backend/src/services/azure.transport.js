@@ -23,7 +23,7 @@ async function postAzure({ endpoint, key, timeoutMs, payload, signal, fetchImpl 
       },
       body: JSON.stringify(payload),
     });
-    // No se procesan textos remotos ni se registran respuestas que puedan contener secretos.
+    // Descarta el cuerpo remoto; solo se registra el estado HTTP.
     await response.body?.cancel();
     if (![200, 201].includes(response.status)) throw new AzureTransportError(`AZURE_HTTP_${response.status}`, response.status);
     return { httpStatus: response.status, processed: payload.alertas_criticas.length };

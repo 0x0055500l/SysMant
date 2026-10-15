@@ -1,5 +1,5 @@
 'use strict';
-// Preparacion local: no abre conexiones MySQL ni modifica backend/.env.
+// Generacion local de credenciales y SQL de importacion.
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { randomBytes } = require('node:crypto');
@@ -25,7 +25,7 @@ async function preparar(directory = path.resolve(__dirname, '../data/bitacoras-0
   }
   const source = await fs.readFile(path.join(__dirname, '002_bitacoras_reales.sql'), 'utf8');
   const header = cuentas.map(({ variable, hash }) => `SET @${variable} = '${hash}';`).join('\n');
-  // Se escriben credenciales primero: si falla el SQL se conservan para recuperacion.
+  // Persistencia de credenciales previa a la escritura del SQL.
   await fs.writeFile(credentialsPath, JSON.stringify({
     generado_en: new Date().toISOString(),
     aviso: 'SECRETO LOCAL. Solo válido para cuentas nuevas de esta importación. No compartir ni versionar.',

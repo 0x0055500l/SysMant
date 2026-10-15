@@ -133,15 +133,14 @@ export class AuthService {
     const candidate = saved.session;
     this.restoring.set(true);
     try {
-      // Esta ruta existente pasa por verificarToken y admite los tres roles.
-      // Su contenido se descarta: se utiliza únicamente para comprobar la sesión.
+      // La consulta autenticada comprueba la sesión; los equipos recibidos se descartan.
       const response = await firstValueFrom(this.http.get<ApiResponse<unknown>>(`${environment.apiUrl}/equipos`, {
         params: { limit: '1' }, headers: { Authorization: `Bearer ${candidate.token}` },
       }).pipe(timeout(5000)));
       if (revision !== this.revision) return false;
       if (!Array.isArray(response?.data)) throw new Error('INVALID_VERIFICATION_RESPONSE');
       if (candidate.expiresAt <= Date.now()) throw new HttpErrorResponse({ status: 401 });
-      // Un logout en otra pestaña puede ocurrir antes de que llegue la respuesta.
+      // Descarta respuestas de una sesión cerrada en otra pestaña.
       if (this.store.read().session?.token !== candidate.token) return false;
       this.session.set(candidate);
       this.persistent.set(true);
@@ -155,7 +154,7 @@ export class AuthService {
         if (current.status === 'invalid' || current.session?.token === candidate.token) this.store.clear();
         this.restoreIssue.set('invalid');
       } else {
-        // No entra a rutas privadas ni elimina el token por una caída temporal del servicio.
+        // Conserva el token para reintentar la validación cuando el servicio se recupere.
         this.restoreIssue.set('unavailable');
       }
       return false;
@@ -188,7 +187,7 @@ export class AuthService {
     this.initialization = this.restoreSession();
     const revision = this.revision;
     void this.initialization.then((valid) => {
-      // Cambiar de cuenta obliga a pasar nuevamente por las rutas y sus guards.
+      // La navegación vuelve a evaluar los guards de la cuenta actual.
       if (revision === this.revision && !this.restoring()) {
         void this.router.navigate([valid ? '/dashboard' : '/login'], { replaceUrl: true });
       }

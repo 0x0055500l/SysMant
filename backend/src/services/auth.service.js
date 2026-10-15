@@ -6,7 +6,7 @@ const usuariosRepository = require('../repositories/usuarios.repository');
 const { config } = require('../config/env');
 const { AppError } = require('../utils/app-error');
 
-// Hash valido con coste 12: iguala el trabajo de bcrypt si no existe el correo.
+// Comparacion bcrypt de costo equivalente para correos inexistentes.
 const DUMMY_PASSWORD_HASH = '$2b$12$k06ScVKnQdvm5d1vxUaEmetWfW4xylzQCPN1DZUQz3hkp2CPBg8wG';
 
 function datosPublicos(usuario) {

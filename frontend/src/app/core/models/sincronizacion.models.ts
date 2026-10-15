@@ -1,4 +1,4 @@
-// El dashboard de la fase 5 ya consume el mismo contrato de la bitácora pública.
+// Contrato de sincronización compartido con el dashboard.
 export type { EstadoSincronizacion, IntentoSincronizacion } from './dashboard.models';
 import { IntentoSincronizacion } from './dashboard.models';
 

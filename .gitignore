@@ -35,7 +35,7 @@ backend/uploads/
 database/backups/
 database/data/
 
-# Documentacion de trabajo privada, conservada solo en el equipo local
+# Documentacion local
 /docs/
 /frontend/docs/
 

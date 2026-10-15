@@ -1,6 +1,6 @@
 const { test } = require('@playwright/test');
 
-// Amplía el entorno simulado de los tests congelados; sus archivos y aserciones permanecen intactos.
+// Catálogo vacío de responsables para las pruebas de sesión e inventario.
 test.beforeEach(async ({ page }) => {
   await page.route('http://127.0.0.1:3000/api/mantenimientos?*', (route) => {
     const headers = { 'Access-Control-Allow-Origin': 'http://localhost:4200',

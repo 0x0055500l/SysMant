@@ -1,8 +1,8 @@
--- SysMant - Fase 1
+-- SysMant: esquema inicial y datos de arranque.
 -- Motor requerido: MySQL 8.4 LTS (compatible desde MySQL 8.0.16).
 -- Ejecutar con un usuario con permiso para crear la base de datos y sus tablas.
--- El script conserva los datos existentes; no reemplaza una migracion de esquema.
--- Las fechas con hora se almacenan en UTC; la aplicacion debe convertirlas al mostrar.
+-- CREATE TABLE IF NOT EXISTS no migra tablas existentes.
+-- Fechas con hora almacenadas en UTC.
 
 SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 SET SESSION time_zone = '+00:00';
@@ -84,8 +84,7 @@ CREATE TABLE IF NOT EXISTS mantenimientos (
     )
 ) ENGINE = InnoDB;
 
--- El proceso de alertas de una fase posterior escribira y actualizara esta tabla.
--- La clave unica impide duplicar el mismo tipo de alerta para un mantenimiento.
+-- Una alerta por mantenimiento y tipo; gestionada por el job de alertas.
 
 CREATE TABLE IF NOT EXISTS alertas (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

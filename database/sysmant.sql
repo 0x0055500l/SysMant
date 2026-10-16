@@ -1,5 +1,6 @@
+--esto es para la db importar
 -- SysMant: esquema inicial y datos de arranque.
--- Motor requerido: MySQL 8.4 LTS (compatible desde MySQL 8.0.16).
+-- Motor: MySQL 8.4 LTS (compatible desde MySQL 8.0.16).
 -- Ejecutar con un usuario con permiso para crear la base de datos y sus tablas.
 -- CREATE TABLE IF NOT EXISTS no migra tablas existentes.
 -- Fechas con hora almacenadas en UTC.

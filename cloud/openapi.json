@@ -1,0 +1,669 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SysMant Cloud — Receptor de sincronización",
+    "version": "1.0.0",
+    "description": "Recepción persistente de paquetes v1 de instalaciones locales. IDs BIGINT como cadenas; UTC sin milisegundos. La API remota no comparte sesiones JWT con la instalación local."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "health",
+        "summary": "Comprobar disponibilidad MySQL",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Receptor conectado a MySQL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "const": "ok"
+                        }
+                      },
+                      "required": [
+                        "status"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "MySQL temporalmente no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sincronizacion/recibir": {
+      "post": {
+        "operationId": "receivePacket",
+        "summary": "Persistir un paquete de la estación autenticada",
+        "description": "Cuerpo máximo de 1 MiB. La estación del cuerpo determina la credencial. La clave de idempotencia debe coincidir exactamente con estacion_id:paquete_uuid. Una repetición con contenido equivalente devuelve 200; el orden de claves JSON no afecta el hash, el orden de arrays sí.",
+        "security": [
+          {
+            "StationApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 73,
+              "maxLength": 73
+            },
+            "description": "estacion_id:paquete_uuid tal como aparecen en el cuerpo. Una única cabecera."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncPacket"
+              },
+              "examples": {
+                "paqueteV1": {
+                  "summary": "Lote de una alerta con identificadores BIGINT en cadenas",
+                  "value": {
+                    "version": 1,
+                    "paquete_uuid": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+                    "estacion_id": "11111111-2222-4333-8444-555555555555",
+                    "generado_en": "2026-10-24T12:00:00Z",
+                    "kpis": {
+                      "equipos_operativos": 6,
+                      "equipos_en_mantenimiento": 1,
+                      "alertas_vencidas": 2,
+                      "alertas_proximas": 1
+                    },
+                    "lote": {
+                      "desde_id": "0",
+                      "siguiente_id": "0",
+                      "limite": 100
+                    },
+                    "alertas_criticas": [
+                      {
+                        "id": "18446744073709551615",
+                        "id_mantenimiento": "9007199254740993",
+                        "id_equipo": "9007199254740995",
+                        "tipo": "vencido",
+                        "estado_lectura": "pendiente",
+                        "fecha_programada": "2026-10-20T07:15:15Z",
+                        "codigo_interno": "EQ-CIST-001",
+                        "equipo_nombre": "Cisterna de Agua"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Paquete ya persistido con el mismo contenido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptResponse"
+                },
+                "examples": {
+                  "confirmacion": {
+                    "value": {
+                      "data": {
+                        "paquete_uuid": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+                        "registros_procesados": 1,
+                        "repetido": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Paquete nuevo confirmado por transacción",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceiptResponse"
+                },
+                "examples": {
+                  "confirmacion": {
+                    "value": {
+                      "data": {
+                        "paquete_uuid": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+                        "registros_procesados": 1,
+                        "repetido": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON o clave de idempotencia inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Estación, clave o estado activo inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Identificador registrado con contenido diferente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "conflicto": {
+                    "value": {
+                      "error": {
+                        "code": "IDEMPOTENCY_CONFLICT",
+                        "message": "El identificador ya corresponde a otro contenido."
+                      },
+                      "request_id": "99999999-2222-4333-8444-555555555555"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo mayor a 1 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Se requiere Content-Type: application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Incumplimiento del contrato o relaciones del lote",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de solicitudes alcanzado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno; el intento puede reintentarse con su mismo identificador",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sincronizacion/estado": {
+      "get": {
+        "operationId": "stationState",
+        "summary": "Consultar el último paquete de una estación",
+        "description": "No es un snapshot completo de todas las alertas abiertas. alertas_criticas contiene únicamente los registros del lote del último paquete elegido por (generado_en, paquete_uuid).",
+        "security": [
+          {
+            "StationApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-Station-ID",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID de la estación. Debe corresponder a X-API-Key; una única cabecera."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado de la estación autenticada; ultimo_paquete es null antes del primer envío",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StateResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Estación, clave o estado activo inválidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Límite de solicitudes alcanzado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno de consulta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "StationApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Clave exclusiva de estación, mínimo 32 bytes. El receptor almacena su SHA-256; no utiliza JWT de usuarios locales."
+      }
+    },
+    "schemas": {
+      "EntityId": {
+        "type": "string",
+        "pattern": "^[1-9][0-9]{0,19}$",
+        "maxLength": 20,
+        "description": "BIGINT UNSIGNED positivo en cadena, hasta 18446744073709551615. No admite ceros iniciales."
+      },
+      "Cursor": {
+        "oneOf": [
+          {
+            "type": "string",
+            "const": "0"
+          },
+          {
+            "$ref": "#/components/schemas/EntityId"
+          }
+        ]
+      },
+      "UtcDateTime": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "^[1-9][0-9]{3}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$",
+        "description": "Fecha real UTC sin milisegundos; año 1000–9999."
+      },
+      "Kpis": {
+        "type": "object",
+        "properties": {
+          "equipos_operativos": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "equipos_en_mantenimiento": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "alertas_vencidas": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "alertas_proximas": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "equipos_operativos",
+          "equipos_en_mantenimiento",
+          "alertas_vencidas",
+          "alertas_proximas"
+        ],
+        "additionalProperties": false
+      },
+      "Batch": {
+        "type": "object",
+        "properties": {
+          "desde_id": {
+            "$ref": "#/components/schemas/Cursor"
+          },
+          "siguiente_id": {
+            "$ref": "#/components/schemas/Cursor"
+          },
+          "limite": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500
+          }
+        },
+        "required": [
+          "desde_id",
+          "siguiente_id",
+          "limite"
+        ],
+        "additionalProperties": false,
+        "description": "desde_id es exclusivo. Las alertas avanzan en orden ascendente sin duplicados. siguiente_id=0 termina el recorrido; otro valor exige lote completo y debe igualar el último ID del lote."
+      },
+      "CriticalAlert": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/EntityId"
+          },
+          "id_mantenimiento": {
+            "$ref": "#/components/schemas/EntityId"
+          },
+          "id_equipo": {
+            "$ref": "#/components/schemas/EntityId"
+          },
+          "tipo": {
+            "type": "string",
+            "const": "vencido"
+          },
+          "estado_lectura": {
+            "type": "string",
+            "enum": [
+              "pendiente",
+              "leida"
+            ]
+          },
+          "fecha_programada": {
+            "$ref": "#/components/schemas/UtcDateTime"
+          },
+          "codigo_interno": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "equipo_nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          }
+        },
+        "required": [
+          "id",
+          "id_mantenimiento",
+          "id_equipo",
+          "tipo",
+          "estado_lectura",
+          "fecha_programada",
+          "codigo_interno",
+          "equipo_nombre"
+        ],
+        "additionalProperties": false
+      },
+      "SyncPacket": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "const": 1
+          },
+          "paquete_uuid": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "estacion_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "generado_en": {
+            "$ref": "#/components/schemas/UtcDateTime"
+          },
+          "kpis": {
+            "$ref": "#/components/schemas/Kpis"
+          },
+          "lote": {
+            "$ref": "#/components/schemas/Batch"
+          },
+          "alertas_criticas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CriticalAlert"
+            },
+            "maxItems": 500
+          }
+        },
+        "required": [
+          "version",
+          "paquete_uuid",
+          "estacion_id",
+          "generado_en",
+          "kpis",
+          "lote",
+          "alertas_criticas"
+        ],
+        "additionalProperties": false,
+        "description": "La cantidad de alertas no puede superar lote.limite ni kpis.alertas_vencidas. Todos los objetos rechazan propiedades desconocidas."
+      },
+      "ReceiptResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "paquete_uuid": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "registros_procesados": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 500
+              },
+              "repetido": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "paquete_uuid",
+              "registros_procesados",
+              "repetido"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "LatestPacket": {
+        "type": "object",
+        "properties": {
+          "paquete_uuid": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "generado_en": {
+            "$ref": "#/components/schemas/UtcDateTime"
+          },
+          "recibido_en": {
+            "$ref": "#/components/schemas/UtcDateTime"
+          },
+          "registros_procesados": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 500
+          },
+          "kpis": {
+            "$ref": "#/components/schemas/Kpis"
+          },
+          "lote": {
+            "$ref": "#/components/schemas/Batch"
+          },
+          "alertas_criticas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CriticalAlert"
+            },
+            "maxItems": 500
+          }
+        },
+        "required": [
+          "paquete_uuid",
+          "generado_en",
+          "recibido_en",
+          "registros_procesados",
+          "kpis",
+          "lote",
+          "alertas_criticas"
+        ],
+        "additionalProperties": false
+      },
+      "StateResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "estacion": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "nombre": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  }
+                },
+                "required": [
+                  "id",
+                  "nombre"
+                ],
+                "additionalProperties": false
+              },
+              "ultimo_paquete": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/LatestPacket"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "estacion",
+              "ultimo_paquete"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ],
+            "additionalProperties": false
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "error",
+          "request_id"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

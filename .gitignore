@@ -39,6 +39,11 @@ database/data/
 /docs/
 /frontend/docs/
 
+# Estado y credenciales del receptor remoto
+/cloud/private/
+/cloud/backend/private/
+/cloud/.runtime/
+
 # Editores y Windows/macOS
 .idea/
 .vscode/

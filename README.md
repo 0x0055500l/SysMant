@@ -234,6 +234,7 @@ SysMant/
 │   ├── sysmant.sql
 │   ├── migrations/
 │   └── seeds/
+├── cloud/                  Receptor remoto, MySQL y despliegue Nginx
 └── README.md
 ```
 
@@ -291,7 +292,7 @@ npm.cmd run alerts:generate
 
 El emisor registra paquetes, respuestas y reintentos en la bitácora local. Los fallos de Internet no detienen la API ni MySQL de la estación. Azure está deshabilitado por defecto.
 
-El receptor remoto de producción y su despliegue no están incluidos en el repositorio. El contrato exige validación de estación, clave de servicio e idempotencia. `npm.cmd run azure:mock` inicia el receptor local en memoria para pruebas.
+El receptor remoto está en [`cloud/`](cloud/README.md), con API Node.js 24, MySQL 8.4 en Docker Compose y configuración de Nginx en Ubuntu. Incluye persistencia, autenticación por estación, idempotencia, respaldo y renovación TLS. El emisor se habilita después de verificar HTTPS y registrar la estación. `npm.cmd run azure:mock` conserva el receptor local en memoria para pruebas.
 
 ### Variables del servidor
 

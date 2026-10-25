@@ -1,0 +1,9 @@
+[Unit]
+Description=Renovacion TLS de SysMant Cloud
+After=docker.service nginx.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=__PROJECT_ROOT__
+ExecStart=/usr/bin/bash __PROJECT_ROOT__/deploy/renew-tls.sh

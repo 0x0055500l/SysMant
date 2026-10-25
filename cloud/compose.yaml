@@ -1,0 +1,83 @@
+name: sysmant-cloud
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: sysmant_cloud
+      MYSQL_USER: sysmant_cloud_app
+      MYSQL_PASSWORD: ${CLOUD_DB_PASSWORD:?CLOUD_DB_PASSWORD requerido}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD requerido}
+      TZ: UTC
+    command:
+      - --mysqlx=OFF
+      - --performance-schema=OFF
+      - --innodb-buffer-pool-size=64M
+      - --innodb-log-buffer-size=8M
+      - --max-connections=20
+      - --table-open-cache=128
+      - --table-definition-cache=400
+      - --temptable-max-ram=16M
+      - --tmp-table-size=8M
+      - --max-heap-table-size=8M
+      - --default-time-zone=+00:00
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/001_sysmant_cloud.sql:/docker-entrypoint-initdb.d/001_sysmant_cloud.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+    mem_limit: 384m
+    memswap_limit: 768m
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options: { max-size: "5m", max-file: "2" }
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mysql: { condition: service_healthy }
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=80
+      HOST: 0.0.0.0
+      PORT: 3100
+      CLOUD_DB_HOST: mysql
+      CLOUD_DB_PORT: 3306
+      CLOUD_DB_NAME: sysmant_cloud
+      CLOUD_DB_USER: sysmant_cloud_app
+      CLOUD_DB_PASSWORD: ${CLOUD_DB_PASSWORD:?CLOUD_DB_PASSWORD requerido}
+      CLOUD_DB_CONNECTION_LIMIT: 5
+      CLOUD_TRUST_PROXY_HOPS: 1
+      CLOUD_STATIONS_FILE: /run/secrets/stations.json
+    ports: ["127.0.0.1:3100:3100"]
+    volumes:
+      - ./private/stations.json:/run/secrets/stations.json:ro
+    read_only: true
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=16m"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 160m
+    memswap_limit: 256m
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3100/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options: { max-size: "5m", max-file: "2" }
+  acme:
+    image: ${ACME_IMAGE:-ghcr.io/acmesh-official/acme.sh:latest}
+    profiles: ["tls"]
+    volumes:
+      - ./private/acme:/acme.sh
+      - /var/www/sysmant-acme:/var/www/acme
+      - ./private/tls:/certs
+volumes:
+  mysql_data:

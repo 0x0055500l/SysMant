@@ -1,4 +1,4 @@
---esto es para la db importar
+-- esto es para la db importar
 -- SysMant: esquema inicial y datos de arranque.
 -- Motor: MySQL 8.4 LTS (compatible desde MySQL 8.0.16).
 -- Ejecutar con un usuario con permiso para crear la base de datos y sus tablas.

@@ -24,6 +24,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database/001_sysmant_cloud.sql:/docker-entrypoint-initdb.d/001_sysmant_cloud.sql:ro
+      - ./database/002_supervision.sql:/docker-entrypoint-initdb.d/002_supervision.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
       interval: 10s
@@ -37,7 +38,9 @@ services:
       driver: json-file
       options: { max-size: "5m", max-file: "2" }
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: ${CLOUD_DOCKERFILE:-Dockerfile}
     restart: unless-stopped
     depends_on:
       mysql: { condition: service_healthy }
@@ -54,9 +57,14 @@ services:
       CLOUD_DB_CONNECTION_LIMIT: 5
       CLOUD_TRUST_PROXY_HOPS: 1
       CLOUD_STATIONS_FILE: /run/secrets/stations.json
+      CLOUD_PORTAL_ENABLED: ${CLOUD_PORTAL_ENABLED:-false}
+      CLOUD_PORTAL_ORIGIN: ${CLOUD_PORTAL_ORIGIN:-}
+      CLOUD_PORTAL_KEY_FILE: /run/secrets/portal.key
+      CLOUD_PORTAL_DIST: /app/public
     ports: ["127.0.0.1:3100:3100"]
     volumes:
       - ./private/stations.json:/run/secrets/stations.json:ro
+      - ./private/portal.key:/run/secrets/portal.key:ro
     read_only: true
     tmpfs: ["/tmp:rw,noexec,nosuid,size=16m"]
     cap_drop: ["ALL"]

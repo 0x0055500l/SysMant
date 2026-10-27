@@ -292,7 +292,7 @@ npm.cmd run alerts:generate
 
 El emisor registra paquetes, respuestas y reintentos en la bitácora local. Los fallos de Internet no detienen la API ni MySQL de la estación. Azure está deshabilitado por defecto.
 
-El receptor remoto está en [`cloud/`](cloud/README.md), con API Node.js 24, MySQL 8.4 en Docker Compose y configuración de Nginx en Ubuntu. Incluye persistencia, autenticación por estación, idempotencia, respaldo y renovación TLS. El emisor se habilita después de verificar HTTPS y registrar la estación. `npm.cmd run azure:mock` conserva el receptor local en memoria para pruebas.
+El componente remoto está en [`cloud/`](cloud/README.md), con API Node.js 24, MySQL 8.4 en Docker Compose y Nginx en Ubuntu. Incluye persistencia, autenticación por estación, idempotencia, respaldo y renovación TLS. El [portal de supervisión](cloud/SUPERVISION.md) utiliza Angular, sesión de navegador y segundo factor para consultar los datos recibidos. El emisor se habilita después de verificar HTTPS y registrar la estación. `npm.cmd run azure:mock` conserva el receptor local en memoria para pruebas.
 
 ### Variables del servidor
 

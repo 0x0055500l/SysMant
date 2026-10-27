@@ -5,3 +5,7 @@
 .runtime
 **/test
 **/*.log
+**/.angular
+**/test-results
+**/playwright-report
+**/e2e

@@ -10,7 +10,13 @@ async function startServer() {
   try {
     const repository = createSyncRepository(pool);
     await repository.health();
-    const app = createApp({ repository, stations: config.stations, trustProxyHops: config.trustProxyHops });
+    let portal = null;
+    if (config.portal) {
+      const portalRepository = require('./repositories/supervision.repository').createPortalRepository(pool);
+      await portalRepository.ready();
+      portal = { repository: portalRepository, options: config.portal, auth: require('./services/supervision-auth.service').createPortalAuth(portalRepository, config.portal) };
+    }
+    const app = createApp({ repository, stations: config.stations, trustProxyHops: config.trustProxyHops, portal });
     server = await new Promise((resolve, reject) => { const listener = app.listen(config.port, config.host, () => resolve(listener)); listener.once('error', reject); });
   } catch (error) { await pool.end(); throw error; }
   server.requestTimeout = 15000; server.headersTimeout = 10000; server.keepAliveTimeout = 5000;

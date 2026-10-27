@@ -14,6 +14,7 @@ test('HTTP: autenticacion, contrato, repeticion, conflicto y errores sin secreto
   const post = (body = value, incoming = headers) => fetch(`${url}/api/sincronizacion/recibir`, { method: 'POST', headers: incoming, body: JSON.stringify(body) });
   try {
     let response = await fetch(`${url}/api/health`); assert.equal(response.status, 200); assert.deepEqual(await response.json(), { data: { status: 'ok' } });
+    response = await fetch(`${url}/api/sincronizacion/recibir`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{bad' }); assert.equal(response.status, 401);
     response = await post(value, { ...headers, 'X-API-Key': 'invalid' }); assert.equal(response.status, 401);
     assert.equal(repository.packets.size, 0);
     response = await post({ ...value, estacion_id: 'bbbbbbbb-2222-4333-8444-555555555555' }); assert.equal(response.status, 401);

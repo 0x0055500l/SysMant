@@ -2,6 +2,19 @@
 const { createHash, timingSafeEqual } = require('node:crypto');
 const { AppError } = require('../utils/app-error');
 const DUMMY_HASH = Buffer.alloc(32);
+function serviceKeyGate(stations) {
+  const allowed = [...stations.values()].filter((station) => station.activo).map((station) => Buffer.from(station.api_key_sha256, 'hex'));
+  return (req, res, next) => {
+    const key = req.get('x-api-key');
+    const count = req.rawHeaders.reduce((total, header, index) => total + (index % 2 === 0 && header.toLowerCase() === 'x-api-key' ? 1 : 0), 0);
+    if (typeof key !== 'string' || Buffer.byteLength(key) < 32 || key.length > 4096 || count !== 1) return next(new AppError(401, 'SERVICE_UNAUTHORIZED', 'Credencial de servicio invalida.'));
+    const incoming = createHash('sha256').update(key).digest();
+    let valid = 0;
+    for (const expected of allowed) valid |= timingSafeEqual(incoming, expected) ? 1 : 0;
+    if (!valid) return next(new AppError(401, 'SERVICE_UNAUTHORIZED', 'Credencial de servicio invalida.'));
+    next();
+  };
+}
 function stationAuth(stations) {
   return (req, res, next) => {
     const key = req.get('x-api-key');
@@ -20,4 +33,4 @@ function stationAuth(stations) {
     next();
   };
 }
-module.exports = { stationAuth };
+module.exports = { stationAuth, serviceKeyGate };

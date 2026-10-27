@@ -24,6 +24,8 @@ gzip -t "$backup_dir/database.sql.gz.partial"
 mv -- "$backup_dir/database.sql.gz.partial" "$backup_dir/database.sql.gz"
 
 config_files=(.env private/stations.json)
+if [[ -f private/portal.key ]]; then config_files+=(private/portal.key); fi
+if [[ -f private/station-networks.conf ]]; then config_files+=(private/station-networks.conf); fi
 for directory in private/acme private/tls; do
     if [[ -d "$directory" ]]; then config_files+=("$directory"); fi
 done

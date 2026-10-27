@@ -35,8 +35,18 @@ function readConfig(env = process.env, readFile = fs.readFileSync) {
     if (stations.has(id)) throw new Error('El registro privado contiene una estacion duplicada.');
     stations.set(id, Object.freeze({ ...station, id, api_key_sha256: station.api_key_sha256.toLowerCase() }));
   }
+  if (env.CLOUD_PORTAL_ENABLED && !['true', 'false'].includes(env.CLOUD_PORTAL_ENABLED)) throw new Error('CLOUD_PORTAL_ENABLED debe ser true o false.');
+  let portal = null;
+  if (env.CLOUD_PORTAL_ENABLED === 'true') {
+    let origin;
+    try { const url = new URL(env.CLOUD_PORTAL_ORIGIN); if (url.protocol !== 'https:' || url.origin !== env.CLOUD_PORTAL_ORIGIN || url.username || url.password) throw new Error(); origin = url.origin; }
+    catch { throw new Error('CLOUD_PORTAL_ORIGIN debe ser un origen HTTPS sin ruta.'); }
+    const rawKey = readFile(path.resolve(root, env.CLOUD_PORTAL_KEY_FILE ?? './private/portal.key'), 'utf8').trim();
+    if (!/^[a-f0-9]{64}$/i.test(rawKey)) throw new Error('La clave maestra del portal debe contener 32 bytes hexadecimales.');
+    portal = Object.freeze({ origin, key: Buffer.from(rawKey, 'hex'), directory: path.resolve(root, env.CLOUD_PORTAL_DIST ?? '../frontend/dist/sysmant-supervision/browser') });
+  }
   return Object.freeze({
-    host, port: integer(env, 'PORT', 3100, 1, 65535), stations,
+    host, port: integer(env, 'PORT', 3100, 1, 65535), stations, portal,
     trustProxyHops: integer(env, 'CLOUD_TRUST_PROXY_HOPS', 0, 0, 1),
     database: Object.freeze({
       host: env.CLOUD_DB_HOST, port: integer(env, 'CLOUD_DB_PORT', 3306, 1, 65535), database,

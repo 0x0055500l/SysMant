@@ -7,18 +7,22 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test test/*.test.js",
-    "test:integration": "node --test test/mysql.integration.js",
-    "station:register": "node scripts/register-station.js"
+    "test:integration": "node scripts/run-integration.js",
+    "station:register": "node scripts/register-station.js",
+    "supervisor:provision": "node scripts/provision-supervisor.js"
   },
   "engines": {
     "node": ">=24.0.0 <25.0.0"
   },
   "dependencies": {
+    "bcryptjs": "3.0.3",
     "dotenv": "17.4.2",
-    "express": "5.2.1",
+    "express": "5.3.0",
     "express-rate-limit": "8.7.0",
     "helmet": "8.3.0",
     "mysql2": "3.24.4",
-    "zod": "4.5.4"
+    "otpauth": "9.5.2",
+    "qrcode": "1.5.4",
+    "zod": "4.6.7"
   }
 }

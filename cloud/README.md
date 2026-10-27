@@ -1,6 +1,6 @@
 # SysMant Cloud
 
-Receptor de sincronización para las instalaciones locales de SysMant. La API y MySQL se ejecutan en contenedores independientes. Nginx se instala en Ubuntu y termina HTTPS; el puerto de Node permanece en loopback.
+Receptor de sincronización y portal privado de supervisión para las instalaciones locales de SysMant. La API y MySQL se ejecutan en contenedores independientes. Nginx termina HTTPS; el puerto de Node permanece en loopback.
 
 ```text
 Estación Windows                       VPS Ubuntu
@@ -8,13 +8,13 @@ Node.js + MySQL ── POST HTTPS ──> Nginx :443 ──> API :3100 ──> M
                                              loopback      red Docker
 ```
 
-El receptor persiste paquetes y mantiene los indicadores más recientes de cada estación. No contiene la interfaz Angular ni sustituye la base de datos local.
+El receptor persiste paquetes y mantiene los indicadores más recientes de cada estación. El portal Angular de `frontend/` permite consultarlos con una cuenta de jefatura y segundo factor. La base de datos de la estación conserva la operación local. El acceso, la activación y las pruebas del portal están descritos en [SUPERVISION.md](SUPERVISION.md).
 
 ## Requisitos y distribución
 
 - Ubuntu 24.04, Docker Engine con Docker Compose v2, Nginx y acceso administrativo.
 - Dominio o nombre DNS público con resolución hacia el VPS.
-- TCP 80 accesible desde Internet para la validación HTTP-01 de ACME. TCP 443 permitido desde las IP de las estaciones y de los administradores autorizados; puede conservar una lista de orígenes permitidos. Revisar tanto el grupo de seguridad de Azure como el firewall del host. SSH conserva su política de acceso existente.
+- TCP 80 accesible desde Internet para ACME. TCP 443 público para acceder al portal desde cualquier red. La recepción de las estaciones puede conservar rangos permitidos por ruta en Nginx. SSH conserva su política de acceso existente.
 - Acceso saliente HTTPS para imágenes y para el servicio ACME.
 
 El directorio de despliegue contiene el contenido de `cloud/`:
@@ -22,6 +22,7 @@ El directorio de despliegue contiene el contenido de `cloud/`:
 ```text
 SysMantCloud/
 ├── backend/            Receptor Express, registro de estaciones y pruebas
+├── frontend/           Portal Angular de supervisión
 ├── database/           Esquema exclusivo sysmant_cloud
 ├── deploy/             Nginx, renovación TLS y respaldo
 ├── compose.yaml
@@ -46,11 +47,14 @@ if [ ! -e .env ]; then
     "$(openssl rand -hex 32)" "$(openssl rand -hex 32)" > .env
 fi
 chmod 600 .env
+if [ ! -e private/portal.key ]; then openssl rand -hex 32 > private/portal.key; fi
+chmod 600 private/portal.key
+if [ ! -e private/station-networks.conf ]; then printf '%s\n' 'deny all;' > private/station-networks.conf; fi
 ```
 
 `CLOUD_DB_PASSWORD` corresponde a la cuenta del receptor; `MYSQL_ROOT_PASSWORD` se reserva para la administración del contenedor MySQL. Cambiar estas variables sobre un volumen existente no cambia las contraseñas de las cuentas ya creadas.
 
-El registro `private/stations.json` debe existir antes de iniciar Compose. Se prepara con el comando `station:register` del backend, utilizando el mismo `SYSMANT_STATION_ID` de la instalación emisora. Puede generarse en Windows, donde ya se utiliza Node.js:
+El registro `private/stations.json` debe existir antes de iniciar Compose. `private/station-networks.conf` debe contener las líneas `allow CIDR;` de las estaciones, seguidas de `deny all;`; el valor inicial impide recepciones hasta configurar los rangos. La política solo afecta a `/api/sincronizacion/`. El registro se prepara con `station:register` del backend, utilizando el mismo `SYSMANT_STATION_ID` de la instalación emisora. Puede generarse en Windows:
 
 ```powershell
 Set-Location -LiteralPath 'D:\proyect\cloud\backend'
@@ -73,6 +77,8 @@ curl --fail --silent http://127.0.0.1:3100/api/health
 ```
 
 El despliegue utiliza Node.js 24 y MySQL 8.4. MySQL guarda sus datos en el volumen `mysql_data` y no publica puertos del host. La API se publica en `127.0.0.1:3100`; el puerto 3100 no necesita una regla de entrada en Azure.
+
+El `Dockerfile` principal compila Angular en una etapa separada. En servidores con memoria limitada puede compilarse el portal en Windows y utilizar `CLOUD_DOCKERFILE=Dockerfile.runtime`, como se describe en la guía de supervisión. La instalación existente requiere aplicar `database/002_supervision.sql`; los scripts de inicio de MySQL solo se ejecutan al crear un volumen nuevo.
 
 Compose incorpora límites de memoria, logs con rotación, healthchecks y reinicio automático. La API utiliza un sistema de archivos de solo lectura y monta el registro de estaciones en `/run/secrets/stations.json`. El esquema de arranque crea exclusivamente `sysmant_cloud` y sus tablas.
 
@@ -192,6 +198,8 @@ El script usa bloqueo `flock` y genera un directorio UTC bajo `private/backups/`
 
 - `database.sql.gz`: volcado transaccional del esquema del receptor.
 - `configuration.tar.gz`: `.env`, registro de estaciones y directorios ACME/TLS existentes.
+- La clave `private/portal.key` se incorpora cuando existe; es necesaria para recuperar los secretos TOTP cifrados.
+- Los rangos privados de `private/station-networks.conf` se incorporan cuando existen.
 - `SHA256SUMS`: verificación de integridad de los dos archivos.
 
 La contraseña se resuelve dentro del contenedor y no forma parte de los argumentos del proceso. El contenido del respaldo no se imprime. La compresión no cifra los archivos; conservar una copia externa protegida, con cifrado y permisos de acceso limitados.

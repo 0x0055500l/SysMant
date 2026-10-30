@@ -9,6 +9,7 @@ export class PortalAuthService {
   private readonly state = signal<PortalSession | null>(null);
   readonly session = this.state.asReadonly();
   readonly authenticated = computed(() => this.state()?.estado === 'autenticada');
+  readonly administrator = computed(() => this.authenticated() && this.state()?.usuario.rol === 'admin');
   async restore(): Promise<void> {
     try { this.state.set((await firstValueFrom(this.http.get<Envelope<PortalSession>>('/api/supervision/auth/sesion'))).data); }
     catch { this.state.set(null); }
@@ -39,6 +40,9 @@ export const authenticatedGuard: CanActivateFn = () => {
 export const setupGuard: CanActivateFn = () => {
   const auth = inject(PortalAuthService); return auth.session()?.estado === 'configurar_mfa' ? true : inject(Router).createUrlTree([auth.authenticated() ? '/panel' : '/login']);
 };
+export const administratorGuard: CanActivateFn = () => {
+  const auth = inject(PortalAuthService); return auth.administrator() ? true : inject(Router).createUrlTree(['/panel']);
+};
 export function operationError(error: unknown): string {
   if (!(error instanceof HttpErrorResponse)) return 'No fue posible completar la operación. Vuelve a intentarlo.';
   if (error.status === 0) return 'No hay conexión con el portal. Comprueba tu conexión y vuelve a intentarlo.';
@@ -53,6 +57,15 @@ export function operationError(error: unknown): string {
     SESSION_REQUIRED: 'Tu sesión terminó. Inicia sesión nuevamente.',
     VALIDATION_ERROR: 'Revisa los campos. La contraseña nueva debe tener al menos 15 caracteres y hasta 72 bytes UTF-8.',
     MFA_REQUIRED: 'Completa la activación del autenticador para consultar los datos.',
+    ADMIN_REQUIRED: 'Esta sección está reservada a administración del portal.',
+    ADMIN_REAUTH_FAILED: 'Confirma tu contraseña y un código nuevo del autenticador. Si acabas de entrar, espera al siguiente código.',
+    ACCOUNT_EXISTS: 'Ese usuario ya existe. Consulta la cuenta antes de crear otra.',
+    ACCOUNT_NOT_FOUND: 'La cuenta ya no está disponible. Actualiza el listado.',
+    ACCOUNT_LIMIT: 'El portal admite hasta 100 cuentas. Contacta con el responsable técnico.',
+    ACCOUNT_INACTIVE: 'Habilita la cuenta antes de restablecer su acceso.',
+    SELF_ACCOUNT_OPERATION: 'Tu propia cuenta se recupera por administración SSH; no puedes deshabilitarla desde esta sesión.',
+    LAST_ADMIN: 'Debe conservarse un administrador activo con su autenticador vinculado.',
+    ACCOUNT_OPERATION_BUSY: 'Otra operación de cuentas está en curso. Actualiza antes de intentar de nuevo.',
   };
   return typeof code === 'string' && messages[code] ? messages[code] : 'No fue posible completar la operación. Vuelve a intentarlo.';
 }

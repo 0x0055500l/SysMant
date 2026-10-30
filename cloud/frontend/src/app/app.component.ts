@@ -1,8 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { PortalAuthService, operationError } from './core/auth.service';
 @Component({
-  selector: 'app-root', standalone: true, imports: [RouterOutlet],
+  selector: 'app-root', standalone: true, imports: [RouterOutlet, RouterLink, RouterLinkActive],
   template: `
     <a class="skip-link" href="#main">Ir al contenido</a>
     <header class="site-header">
@@ -12,14 +12,15 @@ import { PortalAuthService, operationError } from './core/auth.service';
           <span><strong>SysMant</strong><small>SUPERVISIÓN REMOTA</small></span>
         </a>
         @if (auth.session(); as session) {
-          <div class="account"><span class="account-name">{{ session.usuario.nombre }}<small>Consulta de estaciones</small></span>
+          <div class="account"><span class="account-name">{{ session.usuario.nombre }}<small>{{ session.usuario.rol === 'admin' ? 'Administrador del portal' : 'Jefatura · Consulta de estaciones' }}</small></span>
             <button class="btn btn-outline-dark btn-sm" type="button" [disabled]="leaving()" (click)="logout()"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Salir</button></div>
         }
       </div>
     </header>
+    @if (auth.authenticated()) { <nav class="portal-navigation" aria-label="Navegación del portal"><div class="container d-flex flex-wrap gap-2"><a routerLink="/panel" routerLinkActive="active">Estaciones</a>@if (auth.administrator()) { <a routerLink="/administracion" routerLinkActive="active">Administración</a> }</div></nav> }
     @if (error()) { <div class="container mt-3"><p class="alert alert-danger" role="alert">{{ error() }}</p></div> }
     <main id="main" class="container main-content" tabindex="-1"><router-outlet /></main>
-    <footer class="site-footer"><div class="container">Inversiones de la Costa <span aria-hidden="true">·</span> Supervisión de mantenimiento <span class="footer-mode">Acceso de solo lectura</span></div></footer>
+    <footer class="site-footer"><div class="container">Inversiones de la Costa <span aria-hidden="true">·</span> Supervisión de mantenimiento <span class="footer-mode">{{ auth.administrator() ? 'Administración de accesos · Datos de estación de solo lectura' : 'Acceso de solo lectura' }}</span></div></footer>
   `,
 })
 export class AppComponent {

@@ -237,7 +237,7 @@ async function main() {
     instanceWasValidated = true;
     console.log('Instancia temporal verificada. Ejecutando pruebas HTTP con base sysmant_cloud temporal...');
     const testProcess = spawn(process.execPath, ['--test', '--test-concurrency=1',
-      'test/mysql.integration.js', 'test/portal.integration.js'], {
+      'test/mysql.integration.js', 'test/portal.integration.js', 'test/supervision-admin.integration.js'], {
       cwd: backendDirectory,
       env: { ...process.env, CLOUD_TEST_MYSQL_PORT: String(testPort) },
       windowsHide: true,

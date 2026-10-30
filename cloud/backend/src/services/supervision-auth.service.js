@@ -8,7 +8,7 @@ const dummyHash = bcrypt.hashSync('SysMant dummy verification account 2026', 12)
 const denied = () => new AppError(401, 'INVALID_CREDENTIALS', 'No se pudo iniciar sesión. Revisa tus credenciales y el código de autenticación.');
 function createPortalAuth(repository, options) {
   function response(user, level, token) {
-    return { token, level, data: { usuario: { nombre: user.nombre }, estado: level === 'autenticada' ? 'autenticada' : 'configurar_mfa', csrf_token: crypto.csrf(options.key, token) } };
+    return { token, level, data: { usuario: { nombre: user.nombre, usuario: user.usuario, rol: user.rol ?? 'supervisor' }, estado: level === 'autenticada' ? 'autenticada' : 'configurar_mfa', csrf_token: crypto.csrf(options.key, token) } };
   }
   async function issue(tx, user, level) {
     const token = randomBytes(32).toString('base64url'); await tx.session(user.id, crypto.hash(token), level); return response(user, level, token);

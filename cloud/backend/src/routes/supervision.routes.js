@@ -54,6 +54,7 @@ function portalRoutes({ auth, repository, syncRepository, stations, options, rat
     next();
   });
   const permitted = () => [...stations.values()].filter((station) => station.activo).map((station) => station.id);
+  router.use('/admin', require('./administracion.routes').administrationRoutes({ repository, options, rateLimitEnabled }));
   router.get('/estaciones', async (req, res) => {
     const rows = await repository.stations(permitted());
     res.json({ data: rows.map((row) => ({ ...row, generado_en: utc(row.generado_en), recibido_en: utc(row.recibido_en),

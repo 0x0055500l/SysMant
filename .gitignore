@@ -17,6 +17,12 @@ coverage/
 !.env.*.example
 *.pem
 *.key
+*.pfx
+*.p12
+*.p8
+*.jks
+*.keystore
+*.credentials.json
 
 # Registros y archivos temporales
 logs/

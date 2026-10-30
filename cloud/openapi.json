@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "SysMant Cloud — Receptor de sincronización",
-    "version": "1.1.0",
-    "description": "Recepción persistente de paquetes v1 y consulta de supervisión con sesión de navegador y MFA. Las claves de estación y las sesiones del portal son independientes."
+    "version": "1.2.0",
+    "description": "Recepción persistente de paquetes v1 y consulta de supervisión con sesión de navegador y MFA. Las claves de estación y las sesiones del portal son independientes. Las cuentas de jefatura consultan estaciones; el rol admin administra accesos con reautenticacion. Los datos operativos de las estaciones permanecen de solo lectura."
   },
   "servers": [
     {
@@ -1255,6 +1255,632 @@
           }
         }
       }
+    },
+    "/api/supervision/admin/cuentas": {
+      "get": {
+        "operationId": "listPortalAccounts",
+        "summary": "Consultar cuentas del portal",
+        "description": "Requiere sesion con MFA confirmado y rol admin. Las escrituras confirman contraseña y TOTP nuevo, se limitan a seis por minuto por IP y se auditan con actor y cuenta afectada.",
+        "security": [
+          {
+            "PortalSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operacion completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PortalAccount"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/PortalPagination"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesion no valida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, MFA, origen, CSRF o confirmacion de identidad rechazados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cuenta no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Usuario duplicado, limite de cuentas, cuenta propia, ultimo administrador o bloqueo concurrente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Campos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Cuenta bloqueada o limite de solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createPortalAccount",
+        "summary": "Crear una cuenta con activacion pendiente",
+        "description": "Requiere sesion con MFA confirmado y rol admin. Las escrituras confirman contraseña y TOTP nuevo, se limitan a seis por minuto por IP y se auditan con actor y cuenta afectada.",
+        "security": [
+          {
+            "PortalSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Operacion completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PortalAccountDelivery"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesion no valida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, MFA, origen, CSRF o confirmacion de identidad rechazados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cuenta no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Usuario duplicado, limite de cuentas, cuenta propia, ultimo administrador o bloqueo concurrente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Campos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Cuenta bloqueada o limite de solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PortalAccountCreate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/supervision/admin/auditoria": {
+      "get": {
+        "operationId": "listPortalAudit",
+        "summary": "Consultar actividad y operaciones de acceso",
+        "description": "Requiere sesion con MFA confirmado y rol admin. Las escrituras confirman contraseña y TOTP nuevo, se limitan a seis por minuto por IP y se auditan con actor y cuenta afectada.",
+        "security": [
+          {
+            "PortalSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operacion completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PortalAudit"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/PortalPagination"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesion no valida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, MFA, origen, CSRF o confirmacion de identidad rechazados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cuenta no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Usuario duplicado, limite de cuentas, cuenta propia, ultimo administrador o bloqueo concurrente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Campos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Cuenta bloqueada o limite de solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/supervision/admin/cuentas/{id}/restablecer": {
+      "post": {
+        "operationId": "resetPortalAccount",
+        "summary": "Renovar contraseña temporal y autenticador, revocando sesiones",
+        "description": "Requiere sesion con MFA confirmado y rol admin. Las escrituras confirman contraseña y TOTP nuevo, se limitan a seis por minuto por IP y se auditan con actor y cuenta afectada.",
+        "security": [
+          {
+            "PortalSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operacion completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PortalAccountDelivery"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesion no valida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, MFA, origen, CSRF o confirmacion de identidad rechazados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cuenta no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Usuario duplicado, limite de cuentas, cuenta propia, ultimo administrador o bloqueo concurrente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Campos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Cuenta bloqueada o limite de solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PortalAdminProof"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/supervision/admin/cuentas/{id}/estado": {
+      "put": {
+        "operationId": "setPortalAccountState",
+        "summary": "Habilitar o deshabilitar un acceso",
+        "description": "Requiere sesion con MFA confirmado y rol admin. Las escrituras confirman contraseña y TOTP nuevo, se limitan a seis por minuto por IP y se auditan con actor y cuenta afectada.",
+        "security": [
+          {
+            "PortalSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operacion completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PortalAccountResult"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesion no valida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, MFA, origen, CSRF o confirmacion de identidad rechazados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Cuenta no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Usuario duplicado, limite de cuentas, cuenta propia, ultimo administrador o bloqueo concurrente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Campos invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Cuenta bloqueada o limite de solicitudes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PortalAccountState"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1605,10 +2231,22 @@
             "properties": {
               "nombre": {
                 "type": "string"
+              },
+              "usuario": {
+                "type": "string"
+              },
+              "rol": {
+                "type": "string",
+                "enum": [
+                  "supervisor",
+                  "admin"
+                ]
               }
             },
             "required": [
-              "nombre"
+              "nombre",
+              "usuario",
+              "rol"
             ],
             "additionalProperties": false
           },
@@ -1847,6 +2485,264 @@
           "historial",
           "alcance_alertas",
           "desactualizada"
+        ],
+        "additionalProperties": false
+      },
+      "PortalAccount": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "usuario": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "rol": {
+            "type": "string",
+            "enum": [
+              "supervisor",
+              "admin"
+            ]
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "mfa_confirmado": {
+            "type": "boolean"
+          },
+          "creado_en": {
+            "$ref": "#/components/schemas/UtcDateTime"
+          },
+          "es_propia": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "usuario",
+          "nombre",
+          "rol",
+          "activo",
+          "mfa_confirmado",
+          "creado_en",
+          "es_propia"
+        ],
+        "additionalProperties": false
+      },
+      "PortalPagination": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ],
+        "additionalProperties": false
+      },
+      "PortalAccountDelivery": {
+        "type": "object",
+        "properties": {
+          "cuenta": {
+            "$ref": "#/components/schemas/PortalAccount"
+          },
+          "entrega": {
+            "type": "object",
+            "properties": {
+              "usuario": {
+                "type": "string"
+              },
+              "password_temporal": {
+                "type": "string",
+                "writeOnly": false,
+                "description": "Contraseña aleatoria mostrada una vez. No guardar en logs o almacenamiento del navegador."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "usuario",
+              "password_temporal",
+              "url"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "cuenta",
+          "entrega"
+        ],
+        "additionalProperties": false
+      },
+      "PortalAdminProof": {
+        "type": "object",
+        "properties": {
+          "password_actual": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 72,
+            "writeOnly": true,
+            "description": "Contraseña del administrador conectado; máximo 72 bytes UTF-8."
+          },
+          "otp": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "writeOnly": true,
+            "description": "TOTP nuevo; se rechazan contadores utilizados al iniciar sesion o confirmar otra operacion."
+          }
+        },
+        "required": [
+          "password_actual",
+          "otp"
+        ],
+        "additionalProperties": false
+      },
+      "PortalAccountCreate": {
+        "type": "object",
+        "properties": {
+          "usuario": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "rol": {
+            "type": "string",
+            "enum": [
+              "supervisor",
+              "admin"
+            ]
+          },
+          "password_actual": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 72,
+            "writeOnly": true,
+            "description": "Contraseña del administrador conectado; máximo 72 bytes UTF-8."
+          },
+          "otp": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "writeOnly": true,
+            "description": "TOTP nuevo; se rechazan contadores utilizados al iniciar sesion o confirmar otra operacion."
+          }
+        },
+        "required": [
+          "usuario",
+          "nombre",
+          "rol",
+          "password_actual",
+          "otp"
+        ],
+        "additionalProperties": false
+      },
+      "PortalAccountState": {
+        "type": "object",
+        "properties": {
+          "activo": {
+            "type": "boolean"
+          },
+          "password_actual": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 72,
+            "writeOnly": true,
+            "description": "Contraseña del administrador conectado; máximo 72 bytes UTF-8."
+          },
+          "otp": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "writeOnly": true,
+            "description": "TOTP nuevo; se rechazan contadores utilizados al iniciar sesion o confirmar otra operacion."
+          }
+        },
+        "required": [
+          "activo",
+          "password_actual",
+          "otp"
+        ],
+        "additionalProperties": false
+      },
+      "PortalAudit": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/EntityId"
+          },
+          "evento": {
+            "type": "string",
+            "enum": [
+              "login_fallido",
+              "login_correcto",
+              "mfa_activado",
+              "logout",
+              "cuenta_creada",
+              "cuenta_restaurada",
+              "cuenta_desactivada",
+              "cuenta_habilitada"
+            ]
+          },
+          "cuenta": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "actor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "creado_en": {
+            "$ref": "#/components/schemas/UtcDateTime"
+          }
+        },
+        "required": [
+          "id",
+          "evento",
+          "cuenta",
+          "actor",
+          "creado_en"
+        ],
+        "additionalProperties": false
+      },
+      "PortalAccountResult": {
+        "type": "object",
+        "properties": {
+          "cuenta": {
+            "$ref": "#/components/schemas/PortalAccount"
+          }
+        },
+        "required": [
+          "cuenta"
         ],
         "additionalProperties": false
       }

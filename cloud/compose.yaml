@@ -25,6 +25,7 @@ services:
       - mysql_data:/var/lib/mysql
       - ./database/001_sysmant_cloud.sql:/docker-entrypoint-initdb.d/001_sysmant_cloud.sql:ro
       - ./database/002_supervision.sql:/docker-entrypoint-initdb.d/002_supervision.sql:ro
+      - ./database/003_administracion.sql:/docker-entrypoint-initdb.d/003_administracion.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
       interval: 10s

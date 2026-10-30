@@ -78,7 +78,7 @@ curl --fail --silent http://127.0.0.1:3100/api/health
 
 El despliegue utiliza Node.js 24 y MySQL 8.4. MySQL guarda sus datos en el volumen `mysql_data` y no publica puertos del host. La API se publica en `127.0.0.1:3100`; el puerto 3100 no necesita una regla de entrada en Azure.
 
-El `Dockerfile` principal compila Angular en una etapa separada. En servidores con memoria limitada puede compilarse el portal en Windows y utilizar `CLOUD_DOCKERFILE=Dockerfile.runtime`, como se describe en la guía de supervisión. La instalación existente requiere aplicar `database/002_supervision.sql`; los scripts de inicio de MySQL solo se ejecutan al crear un volumen nuevo.
+El `Dockerfile` principal compila Angular en una etapa separada. En servidores con memoria limitada puede compilarse el portal en Windows y utilizar `CLOUD_DOCKERFILE=Dockerfile.runtime`, como se describe en la guía de supervisión. Una instalación anterior al portal requiere `database/002_supervision.sql` y después `database/003_administracion.sql`; si ya dispone del portal original, aplicar únicamente la migración 003. Los scripts de inicio de MySQL solo se ejecutan al crear un volumen nuevo. La migración de perfiles conserva las contraseñas, autenticadores y sesiones existentes.
 
 Compose incorpora límites de memoria, logs con rotación, healthchecks y reinicio automático. La API utiliza un sistema de archivos de solo lectura y monta el registro de estaciones en `/run/secrets/stations.json`. El esquema de arranque crea exclusivamente `sysmant_cloud` y sus tablas.
 

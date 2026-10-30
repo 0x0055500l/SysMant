@@ -1,6 +1,7 @@
 @use 'bootstrap/scss/bootstrap' with ($primary: #07583f, $danger: #bd2835, $body-color: #20352e, $body-bg: #f4f6f5, $border-radius: .6rem, $font-family-sans-serif: (system-ui, -apple-system, 'Segoe UI', sans-serif));
 @import 'bootstrap-icons/font/bootstrap-icons.css';
 :root { color-scheme: light; }
+.portal-navigation { background: #fff; border-bottom: 1px solid #dfe5e1; padding: .6rem 0; }.portal-navigation a { padding: .55rem .9rem; border-radius: .5rem; text-decoration: none; font-size: .85rem; font-weight: 600; }.portal-navigation a.active { background: #e9f3ed; color: #07583f; }
 body { min-width: 320px; margin: 0; }
 a { color: #07583f; }
 button, input, select, summary, a { touch-action: manipulation; }

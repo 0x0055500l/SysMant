@@ -19,6 +19,7 @@ test('MySQL portal: MFA, sesiones persistentes, concurrencia, caducidad, bloqueo
     const [[instance]] = await setup.query('SELECT @@port AS port, @@datadir AS directory'); assert.equal(String(instance.port), '13309'); assert.match(instance.directory, /sysmant-cloud-test-data/i);
     await setup.query(await fs.readFile(path.join(__dirname, '../../database/001_sysmant_cloud.sql'), 'utf8'));
     await setup.query(await fs.readFile(path.join(__dirname, '../../database/002_supervision.sql'), 'utf8'));
+    await setup.query(await fs.readFile(path.join(__dirname, '../../database/003_administracion.sql'), 'utf8'));
     pool = mysql.createPool({ ...options, database: 'sysmant_cloud', connectionLimit: 5 });
     const id = randomUUID(); const secret = crypto.newSecret(); const master = randomBytes(32); const initial = 'Frase temporal de integración 2026'; const personal = 'Frase personal de integración 2026';
     await pool.execute('INSERT INTO supervisores (id, usuario, nombre, password_hash, totp_cifrado) VALUES (?, ?, ?, ?, ?)', [id, 'jefe', 'Jefatura', await bcrypt.hash(initial, 12), crypto.seal(secret, master, id)]);

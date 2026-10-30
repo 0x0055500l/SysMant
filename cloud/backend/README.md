@@ -10,7 +10,7 @@ cp .env.example .env
 npm start
 ```
 
-La configuración requiere la cuenta MySQL del receptor, la contraseña y un registro privado de estaciones. El script `cloud/database/001_sysmant_cloud.sql` crea únicamente las tablas del receptor. La cuenta de ejecución necesita SELECT, INSERT y UPDATE sobre ese esquema; las migraciones se realizan con otra cuenta.
+La configuración requiere la cuenta MySQL del receptor, la contraseña y un registro privado de estaciones. El script `cloud/database/001_sysmant_cloud.sql` crea únicamente las tablas del receptor. La cuenta de ejecución del receptor necesita SELECT, INSERT y UPDATE; con el portal habilitado también necesita DELETE para revocar sesiones. Las migraciones se realizan con una cuenta administradora. El portal utiliza además `002_supervision.sql` y `003_administracion.sql`; sus perfiles y endpoints se describen en [SUPERVISION.md](../SUPERVISION.md).
 
 `HOST` acepta loopback o `0.0.0.0` para contenedores. La publicación de un contenedor debe restringirse a `127.0.0.1:3100`, detrás de Nginx. La base no requiere puerto público.
 

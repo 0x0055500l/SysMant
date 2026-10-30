@@ -1,5 +1,10 @@
 export interface Envelope<T> { data: T; }
-export interface PortalSession { usuario: { nombre: string }; estado: 'autenticada' | 'configurar_mfa'; csrf_token: string; }
+export type PortalRole = 'supervisor' | 'admin';
+export interface PortalSession { usuario: { nombre: string; usuario: string; rol: PortalRole }; estado: 'autenticada' | 'configurar_mfa'; csrf_token: string; }
+export interface PortalPagination { page: number; limit: number; total: number; totalPages: number; }
+export interface PortalAccount { id: string; usuario: string; nombre: string; rol: PortalRole; activo: boolean; mfa_confirmado: boolean; creado_en: string; es_propia: boolean; }
+export interface AccountDelivery { cuenta: PortalAccount; entrega: { usuario: string; password_temporal: string; url: string }; }
+export interface PortalAudit { id: string; evento: string; cuenta: string | null; actor: string | null; creado_en: string; }
 export interface Station {
   id: string; nombre: string; generado_en: string | null; recibido_en: string | null; desactualizada: boolean;
   equipos_operativos: string | null; equipos_en_mantenimiento: string | null; alertas_vencidas: string | null; alertas_proximas: string | null;

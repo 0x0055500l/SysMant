@@ -357,6 +357,19 @@ La configuración E2E reúne los casos de todos los módulos y utiliza una API s
 
 El compilado queda en `frontend/dist/sysmant/browser`. Su publicación requiere un servidor estático con retorno a `index.html` para las rutas Angular. La API y MySQL se ejecutan por separado; `npm.cmd start` del frontend corresponde al servidor de desarrollo.
 
+### Servicio automático en la estación
+
+El instalador de [Windows](deploy/windows/LEEME.txt) reúne la API y la web compilada en el servicio `SysMantLocal`. Inicia con Windows después de MySQL, sirve la aplicación por HTTPS en la red privada y permite entrar desde un acceso directo en cada cliente. No requiere iniciar sesión en Windows ni mantener terminales abiertas.
+
+Para preparar el paquete desde el equipo de desarrollo, con las dependencias del frontend instaladas:
+
+```powershell
+Set-Location -LiteralPath 'D:\proyect'
+node.exe deploy/windows/preparar.cjs
+```
+
+La carpeta generada en `deploy/windows/output/` incluye Node.js 24, dependencias de producción y `Instalar.cmd`. Se copia completa al servidor. El instalador solicita su dirección de red y el archivo `.env` de la estación; MySQL y la base `sysmant` deben estar preparados. Los equipos clientes reciben únicamente la carpeta `C:\ProgramData\SysMant\Clientes`, que contiene el acceso y el certificado público.
+
 ## Respaldo
 
 ```powershell

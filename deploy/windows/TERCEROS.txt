@@ -1,0 +1,12 @@
+WinSW 2.12.0 (.NET Framework 4.6.1 o posterior)
+Origen: https://github.com/winsw/winsw/releases/tag/v2.12.0
+Archivo: WinSW.NET461.exe
+SHA256: b5066b7bbdfba1293e5d15cda3caaea88fbeab35bd5b38c41c913d492aadfc4f
+Licencia MIT: https://github.com/winsw/winsw/blob/v2/LICENSE.txt
+
+Node.js: https://nodejs.org/en/about/previous-releases
+El paquete contiene la version Node.js 24 utilizada para prepararlo.
+Las licencias de Node se distribuyen en node/LICENSE.
+
+Backend: dependencias y licencias incluidas en backend/node_modules.
+Frontend: avisos de Angular y dependencias incluidos en web/3rdpartylicenses.txt.

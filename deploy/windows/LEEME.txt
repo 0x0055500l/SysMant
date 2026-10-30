@@ -1,0 +1,42 @@
+SYSMANT - SERVIDOR LOCAL PARA WINDOWS
+
+1. En el servidor: instala MySQL 8 como servicio, con puerto 3308, base
+   sysmant y el esquema existente. Prepara el archivo backend/.env de esa
+   estacion. Este paquete no contiene contrasenas ni una copia de la base.
+
+2. Asigna una IP fija o una reserva DHCP al servidor. Conecta los clientes
+   a la red privada de la estacion. El nombre elegido debe resolverse desde
+   cada cliente; si no hay DNS local, utiliza la IP fija.
+
+3. Ejecuta Instalar.cmd. Acepta el permiso de administrador y proporciona
+   la direccion HTTPS del servidor y la ruta de su archivo .env.
+   Ejemplo de direccion: https://SERVIDOR:8443
+
+4. Copia SOLO C:\ProgramData\SysMant\Clientes a cada equipo cliente.
+   Ejecuta Instalar-Acceso.cmd desde esa carpeta. Verifica el servidor y la
+   huella del certificado con el administrador antes de instalar el acceso.
+   Cada perfil de Windows instala su propio acceso. No requiere Node ni MySQL.
+
+5. El usuario abre SysMant desde el escritorio. El servicio inicia despues
+   de MySQL, aun sin iniciar sesion en Windows. El servidor debe permanecer
+   encendido y sin suspension mientras se necesite el sistema.
+
+ADMINISTRACION (PowerShell como administrador):
+& 'C:\Program Files\SysMant\Administrar-Servicio.ps1' -Accion Estado
+& 'C:\Program Files\SysMant\Administrar-Servicio.ps1' -Accion Reiniciar
+& 'C:\Program Files\SysMant\Administrar-Servicio.ps1' -Accion RenovarCertificado
+
+El certificado local dura dos anos. Renovarlo requiere distribuir de nuevo
+la carpeta Clientes. Nunca ignores avisos de certificado del navegador.
+
+La instalacion permite HTTPS solo en redes privadas/de dominio y desde la
+subred local. No publiques MySQL, la API interna ni este servicio en Internet.
+La supervision remota mantiene su portal independiente en Azure.
+
+Registros: C:\ProgramData\SysMant\logs
+Configuracion privada: C:\ProgramData\SysMant\config
+Programa: C:\Program Files\SysMant
+
+Protege los respaldos de la base, backend.env y service.json. El archivo
+servidor.pfx contiene la clave TLS. No compartas estas carpetas con clientes.
+La desinstalacion del servicio conserva la base y la configuracion.
